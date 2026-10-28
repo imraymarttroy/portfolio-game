@@ -182,8 +182,8 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Lighthouse Keeper & Harbor Master',
     title: 'The Pier Mariner',
     accentColor: '#38bdf8', // Sky blue
-    position: [-16, 0.4, 18],
-    rotation: 0.3,
+    position: [-14.6, 0.6, 15.4],
+    rotation: 2.39,
     avatarIcon: '⚓',
     landmark: 'The Lighthouse & Wooden Pier',
     portfolioTopic: 'Raymart Troy’s Origin & Theater Roots',
@@ -227,8 +227,8 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Windmill Engineer & Craft Tinkerer',
     title: 'The Media Smith',
     accentColor: '#fb923c', // Orange
-    position: [18, 1.2, 12],
-    rotation: -2.1,
+    position: [14.0, 1.0, 9.3],
+    rotation: -2.16,
     avatarIcon: '⚙️',
     landmark: 'The Windmill Workshop',
     portfolioTopic: 'Creative Toolkit, Motion & Skills',
@@ -268,8 +268,8 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Art Director & Gallery Curator',
     title: 'The Gallery Curator',
     accentColor: '#c084fc', // Purple
-    position: [-14, 1.0, -14],
-    rotation: 1.2,
+    position: [-14, 1.4, -15.1],
+    rotation: 0,
     avatarIcon: '🎨',
     landmark: 'The Crystal Pavilion',
     portfolioTopic: 'Featured Projects: Narabi, Bianca, & Reels',
@@ -321,8 +321,8 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Island Philosopher & Creative Mentor',
     title: 'The Mountain Sage',
     accentColor: '#34d399', // Emerald
-    position: [0, 4.5, -20],
-    rotation: 3.14,
+    position: [0, 4.6, -21.9],
+    rotation: 0,
     avatarIcon: '✨',
     landmark: 'The Stargazer Peak & Campfire',
     portfolioTopic: 'Brand Storytelling Philosophy & Client Praise',

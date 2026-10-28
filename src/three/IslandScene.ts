@@ -1,7 +1,16 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ISLAND_NPCS, ISLAND_SHELLS } from '../data/portfolioData';
-import { clampToIsland, distance2D, getTerrainHeight, ISLAND_RADIUS } from '../game/logic';
+import { distance2D, getTerrainHeight, ISLAND_RADIUS } from '../game/logic';
+import {
+  Collider,
+  getBushes,
+  getSurfaceHeight,
+  getTrees,
+  npcColliders,
+  STATIC_COLLIDERS,
+  stepPlayer,
+} from '../game/world';
 import { soundManager } from '../audio/soundSynthesizer';
 import { GameState, Vector3D } from '../types/game';
 
@@ -66,6 +75,7 @@ export class IslandSceneController {
   private heldKeys: Set<string> = new Set();
   private playerPos = { x: 0, y: 0.5, z: 8 };
   private playerVel = { x: 0, y: 0, z: 0 };
+  private colliders: Collider[] = [...STATIC_COLLIDERS, ...npcColliders(ISLAND_NPCS)];
   private isJumping: boolean = false;
   private jumpVelocity: number = 0;
   private walkTime: number = 0;
@@ -603,24 +613,10 @@ export class IslandSceneController {
     const treeMatPine1 = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.75 });
     const treeMatPine2 = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.75 });
 
-    // Plant 24 trees around the island at scenic positions
-    const treeSpots: [number, number][] = [
-      [8, 4], [10, 8], [6, 14], [-6, 12], [-10, 16],
-      [-8, -6], [-12, -4], [-18, -6], [-4, -12], [4, -14],
-      [12, -8], [15, -14], [20, -2], [22, 4], [-8, 22],
-      [-4, 20], [14, 18], [24, 10], [-20, 6], [-16, 8],
-      [2, -10], [6, -18], [-6, -18], [10, -20]
-    ];
-
-    treeSpots.forEach(([tx, tz], idx) => {
-      const ty = getTerrainHeight(tx, tz);
-      if (ty < 0.25) return;
-
+    // Trees come from the shared world layout so their colliders line up exactly.
+    getTrees().forEach(({ x: tx, z: tz, y: ty, scale, index: idx }) => {
       const tree = new THREE.Group();
       tree.position.set(tx, ty, tz);
-
-      // Randomize scale ±15%
-      const scale = 0.85 + ((idx * 7) % 30) / 100;
       tree.scale.set(scale, scale, scale);
 
       // Trunk
@@ -648,14 +644,7 @@ export class IslandSceneController {
     // Flowering bushes and rock boulders
     const bushMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.8 });
     const flowerMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.5 });
-    for (let i = 0; i < 18; i++) {
-      const angle = (i * Math.PI) / 9;
-      const r = 9 + ((i * 11) % 12);
-      const bx = Math.cos(angle) * r;
-      const bz = Math.sin(angle) * r;
-      const by = getTerrainHeight(bx, bz);
-      if (by < 0.2) continue;
-
+    getBushes().forEach(({ x: bx, y: by, z: bz }) => {
       const bushGroup = new THREE.Group();
       bushGroup.position.set(bx, by, bz);
 
@@ -672,7 +661,7 @@ export class IslandSceneController {
       bushGroup.add(fMesh);
 
       this.scene.add(bushGroup);
-    }
+    });
   }
 
   private buildNpcs() {
@@ -680,7 +669,7 @@ export class IslandSceneController {
       const group = new THREE.Group();
       const x = npc.position[0];
       const z = npc.position[2];
-      const y = getTerrainHeight(x, z);
+      const y = getSurfaceHeight(x, z);
       group.position.set(x, y, z);
       group.rotation.y = npc.rotation;
 
@@ -1163,17 +1152,25 @@ export class IslandSceneController {
       this.playerBodyMesh.position.y = 0.65;
     }
 
-    // Apply movement
-    this.playerPos.x += this.playerVel.x * dt;
-    this.playerPos.z += this.playerVel.z * dt;
-
-    // Island boundary clamping
-    const clamped = clampToIsland(this.playerPos.x, this.playerPos.z, ISLAND_RADIUS - 1.5);
-    this.playerPos.x = clamped.x;
-    this.playerPos.z = clamped.z;
+    // Apply movement with collision: slide around trees, buildings and villagers,
+    // stay on the island (or the pier), and hop over low things while airborne.
+    const feetAboveGround = this.isJumping
+      ? Math.max(0, this.playerPos.y - getSurfaceHeight(this.playerPos.x, this.playerPos.z))
+      : 0;
+    const moved = stepPlayer(
+      this.playerPos.x,
+      this.playerPos.z,
+      this.playerVel.x * dt,
+      this.playerVel.z * dt,
+      this.colliders,
+      feetAboveGround,
+      ISLAND_RADIUS - 1.5
+    );
+    this.playerPos.x = moved.x;
+    this.playerPos.z = moved.z;
 
     // Ground height snapping + jump physics
-    const groundY = getTerrainHeight(this.playerPos.x, this.playerPos.z);
+    const groundY = getSurfaceHeight(this.playerPos.x, this.playerPos.z);
     if (this.isJumping) {
       this.playerPos.y += this.jumpVelocity * dt;
       this.jumpVelocity -= 26 * dt; // Gravity
