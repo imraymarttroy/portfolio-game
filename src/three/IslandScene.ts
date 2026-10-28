@@ -287,7 +287,7 @@ export class IslandSceneController {
 
     // 2. Striped tower sections
     const towerMatWhite = new THREE.MeshStandardMaterial({ color: 0xf8fafc, roughness: 0.4 });
-    const towerMatRed = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.45 });
+    const towerMatRed = new THREE.MeshStandardMaterial({ color: 0xdd8669, roughness: 0.45 });
 
     const bandHeights = [1.8, 1.8, 1.8, 1.8];
     let curY = 1.2;

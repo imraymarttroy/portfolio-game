@@ -68,7 +68,7 @@ export const SecretCelebrationModal: React.FC<SecretCelebrationModalProps> = ({
               onClose();
               onOpenJournal();
             }}
-            className="flex-1 py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="flex-1 py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <span>Open Field Guide</span>
             <ArrowRight className="w-4 h-4" />

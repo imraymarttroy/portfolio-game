@@ -101,11 +101,11 @@ export const GameHUD: React.FC<GameHUDProps> = ({
         <div className="flex justify-center mb-6">
           <button
             onClick={onInteract}
-            className="pointer-events-auto flex items-center gap-3 px-6 py-3 rounded-2xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm sm:text-base tracking-wide shadow-xl transition-all transform active:scale-95 border-b-4 border-amber-800"
+            className="pointer-events-auto flex items-center gap-3 px-6 py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-sm sm:text-base tracking-wide shadow-xl transition-all transform active:scale-95 border-b-4 border-amber-900"
           >
             <span className="text-xl">{nearbyNpc.avatarIcon}</span>
             <span>Talk to {nearbyNpc.name}</span>
-            <span className="text-xs bg-amber-800/80 px-2 py-0.5 rounded font-mono text-amber-100">
+            <span className="text-xs bg-amber-950/80 px-2 py-0.5 rounded font-mono text-amber-100">
               Space / E
             </span>
           </button>

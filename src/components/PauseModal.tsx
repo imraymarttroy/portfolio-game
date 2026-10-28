@@ -71,7 +71,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
           <button
             data-start="true"
             onClick={onResume}
-            className="w-full py-3 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-sm shadow-md transition-all active:scale-95 flex items-center justify-center gap-2"
           >
             <Play className="w-4 h-4 fill-current" />
             <span>Resume Game (Esc)</span>

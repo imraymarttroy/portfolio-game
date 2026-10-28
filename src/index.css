@@ -1,8 +1,37 @@
 @import "tailwindcss";
 
+/*
+ * Brand system — matches imraymarttroy.online
+ * Charcoal surfaces, cream highlights, terracotta accent.
+ * Display: Anton · Body: Poppins · Labels: Space Mono
+ *
+ * The UI was built on Tailwind's `amber` scale, so the scale itself is
+ * remapped to the brand: light steps = cream, mid steps = terracotta,
+ * dark steps = charcoal. Every existing amber-* class picks it up.
+ */
 @theme {
-  --font-display: 'Fredoka', cursive, system-ui, sans-serif;
-  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-display: 'Anton', 'Impact', system-ui, sans-serif;
+  --font-sans: 'Poppins', system-ui, sans-serif;
+  --font-mono: 'Space Mono', ui-monospace, monospace;
+
+  --color-brand-ink: #0a0a0a;
+  --color-brand-charcoal: #1e1e1f;
+  --color-brand-panel: #2b2b2c;
+  --color-brand-cream: #f0eadc;
+  --color-brand-accent: #dd8669;
+  --color-brand-accent-dark: #ba755e;
+
+  --color-amber-50: #f8f5ee;
+  --color-amber-100: #f0eadc;
+  --color-amber-200: #e3dac6;
+  --color-amber-300: #eba791;
+  --color-amber-400: #e3957b;
+  --color-amber-500: #dd8669;
+  --color-amber-600: #c66f52;
+  --color-amber-700: #9c5640;
+  --color-amber-800: #2b2b2c;
+  --color-amber-900: #1e1e1f;
+  --color-amber-950: #0d0d0d;
 }
 
 body {
@@ -10,4 +39,19 @@ body {
   overscroll-behavior: none;
   user-select: none;
   -webkit-user-select: none;
+}
+
+/* Anton is a single heavy cut; keep it from being faux-bolded. */
+.font-display {
+  font-weight: 400 !important;
+  letter-spacing: 0.01em;
+}
+
+/* Cream "label tape" boxes behind headline lines, as on the brand site. */
+.brand-tape {
+  display: inline-block;
+  background: var(--color-brand-cream);
+  color: var(--color-brand-ink);
+  padding: 0.04em 0.18em 0;
+  line-height: 1.05;
 }

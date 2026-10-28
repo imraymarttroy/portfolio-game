@@ -78,7 +78,7 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
               onInteract();
             }}
             onClick={onInteract}
-            className="w-16 h-16 rounded-full bg-emerald-600 active:bg-emerald-500 text-white font-bold text-xs shadow-xl flex items-center justify-center border-2 border-emerald-400"
+            className="w-16 h-16 rounded-full bg-amber-900 active:bg-amber-800 text-amber-100 font-bold text-xs shadow-xl flex items-center justify-center border-2 border-amber-500"
           >
             💬 Talk
           </button>
@@ -90,7 +90,7 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
             onJump();
           }}
           onClick={onJump}
-          className="w-16 h-16 rounded-full bg-amber-600 active:bg-amber-500 text-white font-bold text-xs shadow-xl flex items-center justify-center border-2 border-amber-400"
+          className="w-16 h-16 rounded-full bg-amber-500 active:bg-amber-400 text-amber-950 font-bold text-xs shadow-xl flex items-center justify-center border-2 border-amber-400"
         >
           ⬆️ Hop
         </button>

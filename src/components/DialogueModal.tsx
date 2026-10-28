@@ -129,7 +129,7 @@ export const DialogueModal: React.FC<DialogueModalProps> = ({
               href={activeExternalLink.url}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-amber-900 hover:bg-amber-800 text-amber-100 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95"
             >
               <span>{activeExternalLink.label}</span>
               <ExternalLink className="w-4 h-4" />

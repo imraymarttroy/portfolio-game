@@ -129,7 +129,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
               }}
               className={`px-3.5 py-2 rounded-xl text-xs sm:text-sm font-bold flex items-center gap-2 transition-all whitespace-nowrap cursor-pointer ${
                 activeTab === tab.id
-                  ? 'bg-amber-600 text-white shadow-sm'
+                  ? 'bg-amber-500 text-amber-950 shadow-sm'
                   : 'text-amber-900/80 hover:bg-amber-200/60'
               }`}
             >
@@ -309,7 +309,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
                             href={proj.demoUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
+                            className="px-3 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-xs transition-colors flex items-center gap-1.5 shadow-xs"
                           >
                             <span>Open Project</span>
                             <ExternalLink className="w-3.5 h-3.5" />
@@ -636,7 +636,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
               <div className="flex flex-wrap items-center justify-center gap-2.5 w-full">
                 <a
                   href={`mailto:${PORTFOLIO_OWNER.email}?subject=Hello%20Raymart%20Troy%20-%20Creative%20Project`}
-                  className="px-5 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center gap-2"
+                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-xs sm:text-sm shadow-md transition-all active:scale-95 flex items-center gap-2"
                 >
                   <Mail className="w-4 h-4" />
                   <span>Send Direct Email</span>
