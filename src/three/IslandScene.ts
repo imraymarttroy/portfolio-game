@@ -966,11 +966,11 @@ export class IslandSceneController {
     // navy tee, brown belt, jeans and hiking boots. Faces +Z.
     const mat = (color: number, roughness = 0.7, metalness = 0) =>
       new THREE.MeshStandardMaterial({ color, roughness, metalness });
-    const skinMat = mat(0xd49a72, 0.6);
+    const skinMat = mat(0xc98f68, 0.6);
     const hairMat = mat(0x1d1612, 0.8);
-    const capMat = mat(0xb9874c, 0.75);
+    const capMat = mat(0x9c6a2c, 0.75);
     const headphoneMat = mat(0x2b2b2c, 0.45, 0.3);
-    const jacketMat = mat(0xe8dcc6, 0.85);
+    const jacketMat = mat(0xd8c8ab, 0.85);
     jacketMat.side = THREE.DoubleSide;
     const teeMat = mat(0x1f2433, 0.8);
     const jeansMat = mat(0x34507a, 0.85);
