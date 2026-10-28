@@ -92,7 +92,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
             <span className="text-2xl">📖</span>
             <div>
               <h2 className="text-lg sm:text-xl font-extrabold tracking-tight font-display">
-                Isle of Troy • Raymart Troy’s Portfolio Guide
+                Raymart Troy Adventures • Portfolio Guide
               </h2>
               <div className="flex items-center gap-2 text-xs text-amber-200/90 font-medium">
                 <span>{islandRank}</span>

@@ -42,26 +42,36 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ onStart, onOpenJournal
           Raymart Troy · Multimedia Artist
         </div>
 
-        <h1 className="font-display uppercase text-5xl sm:text-7xl leading-none flex flex-col items-center gap-1.5 sm:gap-2 mb-5 drop-shadow-[0_6px_18px_rgba(0,0,0,0.25)]">
-          <span className="brand-tape">Isle of</span>
-          <span className="brand-tape relative">
-            Troy
-            {/* Terracotta brush squiggle */}
-            <svg
-              className="absolute left-[-6%] right-[-6%] w-[112%] top-1/2 -translate-y-1/2 h-[0.32em] pointer-events-none"
-              viewBox="0 0 200 20"
-              preserveAspectRatio="none"
-              aria-hidden="true"
-            >
+        {/* Game logo: Raymart Troy Adventures */}
+        <h1 className="adv-logo relative flex flex-col items-center mb-6" aria-label="Raymart Troy Adventures">
+          {/* Slow-turning sunburst behind the logo */}
+          <svg className="adv-sunburst absolute left-1/2 top-1/2 w-[150%] sm:w-[135%] aspect-square pointer-events-none" viewBox="-100 -100 200 200" aria-hidden="true">
+            {Array.from({ length: 16 }).map((_, i) => (
               <path
-                d="M4 12 C30 4, 48 18, 74 11 S118 4, 140 12 S180 17, 196 8"
-                fill="none"
-                stroke="#dd8669"
-                strokeWidth="6"
-                strokeLinecap="round"
-                opacity="0.85"
+                key={i}
+                d="M0 0 L-9 -100 L9 -100 Z"
+                transform={`rotate(${i * 22.5})`}
+                fill={i % 2 === 0 ? '#dd8669' : '#f0eadc'}
+                opacity={i % 2 === 0 ? 0.32 : 0.22}
               />
-            </svg>
+            ))}
+            <circle r="34" fill="#f0eadc" opacity="0.35" />
+          </svg>
+
+          <span className="adv-name relative font-display uppercase leading-[0.86] text-center">
+            <span className="block">Raymart</span>
+            <span className="block">Troy</span>
+          </span>
+
+          {/* Ribbon banner */}
+          <span className="adv-ribbon relative -mt-2 sm:-mt-3">
+            <span className="adv-ribbon-tail adv-ribbon-tail--left" aria-hidden="true"></span>
+            <span className="adv-ribbon-tail adv-ribbon-tail--right" aria-hidden="true"></span>
+            <span className="adv-ribbon-face font-display uppercase">
+              <span aria-hidden="true" className="adv-star">✦</span>
+              Adventures
+              <span aria-hidden="true" className="adv-star">✦</span>
+            </span>
           </span>
         </h1>
 

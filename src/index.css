@@ -55,3 +55,101 @@ body {
   padding: 0.04em 0.18em 0;
   line-height: 1.05;
 }
+
+/* ---------------------------------------------------------------------------
+ * Title logo: "Raymart Troy Adventures"
+ * Chunky cream lettering with a stacked charcoal extrude, a terracotta
+ * ribbon, and a slow sunburst behind — built in the brand palette.
+ * ------------------------------------------------------------------------- */
+.adv-logo {
+  transform: rotate(-3deg);
+  animation: adv-pop 0.9s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.adv-sunburst {
+  transform: translate(-50%, -50%);
+  animation: adv-spin 60s linear infinite;
+  z-index: -1;
+}
+
+.adv-name {
+  font-size: clamp(3.4rem, 13vw, 7.5rem);
+  color: var(--color-brand-cream);
+  letter-spacing: 0.015em;
+  -webkit-text-stroke: 0.035em var(--color-brand-ink);
+  paint-order: stroke fill;
+  text-shadow:
+    0.012em 0.012em 0 var(--color-brand-charcoal),
+    0.024em 0.024em 0 var(--color-brand-charcoal),
+    0.036em 0.036em 0 var(--color-brand-charcoal),
+    0.048em 0.048em 0 var(--color-brand-charcoal),
+    0.06em 0.06em 0 var(--color-brand-charcoal),
+    0.072em 0.072em 0 var(--color-brand-ink),
+    0.09em 0.11em 0.12em rgba(0, 0, 0, 0.35);
+}
+
+.adv-name > span:last-child {
+  color: var(--color-brand-accent);
+}
+
+.adv-ribbon {
+  display: inline-block;
+  font-size: clamp(1.25rem, 4.6vw, 2.4rem);
+  transform: rotate(2deg);
+}
+
+.adv-ribbon-face {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  padding: 0.2em 1.1em 0.12em;
+  background: var(--color-brand-charcoal);
+  color: var(--color-brand-cream);
+  letter-spacing: 0.22em;
+  border: 0.09em solid var(--color-brand-ink);
+  border-radius: 0.18em;
+  box-shadow:
+    inset 0 0 0 0.08em var(--color-brand-accent),
+    0 0.14em 0 var(--color-brand-ink),
+    0 0.3em 0.5em rgba(0, 0, 0, 0.3);
+}
+
+.adv-star {
+  color: var(--color-brand-accent);
+  font-size: 0.7em;
+  letter-spacing: 0;
+}
+
+.adv-ribbon-tail {
+  position: absolute;
+  top: 0.35em;
+  width: 1.5em;
+  height: 100%;
+  background: var(--color-brand-accent-dark);
+  border: 0.09em solid var(--color-brand-ink);
+}
+
+.adv-ribbon-tail--left {
+  left: -1.05em;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%, 0.55em 50%);
+}
+
+.adv-ribbon-tail--right {
+  right: -1.05em;
+  clip-path: polygon(0 0, 100% 0, calc(100% - 0.55em) 50%, 100% 100%, 0 100%);
+}
+
+@keyframes adv-spin {
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes adv-pop {
+  from { opacity: 0; transform: rotate(-3deg) scale(0.6); }
+  to { opacity: 1; transform: rotate(-3deg) scale(1); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adv-logo, .adv-sunburst { animation: none; }
+}
