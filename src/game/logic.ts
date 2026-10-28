@@ -39,7 +39,7 @@ export function distance3D(
  */
 export function getTerrainHeight(x: number, z: number): number {
   const dist = Math.sqrt(x * x + z * z);
-  if (dist > 33) return -0.4;
+  if (dist > 33) return SEABED_HEIGHT;
 
   // Stargazer peak (North, centered around x=0, z=-20)
   const peakDist = Math.sqrt(x * x + (z + 20) * (z + 20));
@@ -69,8 +69,24 @@ export function getTerrainHeight(x: number, z: number): number {
     h = h * fade;
   }
 
-  return Math.max(0.05, h);
+  // Beach floor: stays clearly above the water inside the walkable shore,
+  // then slopes under the sea. Keeping it off the water plane's exact height
+  // avoids z-fighting (the flickering, jagged stripes along the island edge).
+  const SHORE_START = ISLAND_RADIUS - 1.5; // edge of the walkable area
+  if (dist > SHORE_START) {
+    const t = Math.min(1, (dist - SHORE_START) / (33 - SHORE_START));
+    return BEACH_HEIGHT + (SEABED_HEIGHT - BEACH_HEIGHT) * t;
+  }
+
+  return Math.max(BEACH_HEIGHT, h);
 }
+
+/** Water surface height; the ocean mesh sits here. */
+export const WATER_LEVEL = 0.05;
+/** Lowest dry-sand height on the island, comfortably above the water. */
+export const BEACH_HEIGHT = 0.2;
+/** Seabed height past the shoreline. */
+export const SEABED_HEIGHT = -0.6;
 
 /**
  * Clamps coordinates to remain safely on the island boundary.
