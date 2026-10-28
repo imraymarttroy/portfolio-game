@@ -855,9 +855,10 @@ export class IslandSceneController {
       ctx.stroke();
       ctx.restore();
     };
-    drawPeso(4, 5, 'rgba(140, 72, 6, 0.55)', 15);
-    drawPeso(0, 0, '#fff0b3', 15);
-    drawPeso(0, 0, '#f6b42a', 9);
+    drawPeso(5, 6, 'rgba(120, 60, 4, 0.6)', 20);
+    drawPeso(0, 0, '#a85c08', 20);
+    drawPeso(-1, -1, '#fff2b8', 13);
+    drawPeso(0, 0, '#f9bf33', 8);
 
     const tex = new THREE.CanvasTexture(canvas);
     tex.colorSpace = THREE.SRGBColorSpace;
@@ -866,8 +867,8 @@ export class IslandSceneController {
   }
 
   private buildShells() {
-    const COIN_R = 0.42;
-    const COIN_DEPTH = 0.16;
+    const COIN_R = 0.56;
+    const COIN_DEPTH = 0.2;
 
     const faceTex = this.createPesoCoinTexture();
     const faceMat = new THREE.MeshStandardMaterial({
