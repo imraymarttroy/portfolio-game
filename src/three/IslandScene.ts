@@ -50,10 +50,12 @@ export class IslandSceneController {
 
   // Game actors & references
   private playerGroup: THREE.Group = new THREE.Group();
-  private playerBodyMesh!: THREE.Mesh;
-  private playerHeadMesh!: THREE.Mesh;
-  private playerLeftLeg!: THREE.Mesh;
-  private playerRightLeg!: THREE.Mesh;
+  private playerBodyMesh!: THREE.Object3D;
+  private playerHeadMesh!: THREE.Object3D;
+  private playerLeftLeg!: THREE.Object3D;
+  private playerRightLeg!: THREE.Object3D;
+  private playerLeftArm!: THREE.Object3D;
+  private playerRightArm!: THREE.Object3D;
   private playerShadowDisc!: THREE.Mesh;
   private playerFacingAngle: number = 0;
 
@@ -960,67 +962,212 @@ export class IslandSceneController {
     this.playerShadowDisc.position.y = 0.02;
     this.playerGroup.add(this.playerShadowDisc);
 
-    // 2. Torso (Cozy warm yellow adventurer hoodie)
-    const bodyGeo = new THREE.CylinderGeometry(0.35, 0.45, 0.9, 8);
-    const hoodieMat = new THREE.MeshStandardMaterial({
-      color: 0xf59e0b, // Warm honey amber
-      roughness: 0.7,
+    // Player avatar: Raymart Troy — tan cap, headphones, cream jacket over a
+    // navy tee, brown belt, jeans and hiking boots. Faces +Z.
+    const mat = (color: number, roughness = 0.7, metalness = 0) =>
+      new THREE.MeshStandardMaterial({ color, roughness, metalness });
+    const skinMat = mat(0xd49a72, 0.6);
+    const hairMat = mat(0x1d1612, 0.8);
+    const capMat = mat(0xb9874c, 0.75);
+    const headphoneMat = mat(0x2b2b2c, 0.45, 0.3);
+    const jacketMat = mat(0xe8dcc6, 0.85);
+    jacketMat.side = THREE.DoubleSide;
+    const teeMat = mat(0x1f2433, 0.8);
+    const jeansMat = mat(0x34507a, 0.85);
+    const beltMat = mat(0x6b4426, 0.6);
+    const buckleMat = mat(0xc9ccd1, 0.3, 0.8);
+    const bootMat = mat(0x2f2a27, 0.7);
+    const bootAccentMat = mat(0x7a3328, 0.7);
+    const soleMat = mat(0x141414, 0.9);
+    const cast = (m: THREE.Mesh) => {
+      m.castShadow = !isSoftwareGl;
+      return m;
+    };
+
+    // --- Legs (pivot at the hip so they swing naturally) ---
+    const buildLeg = (side: number) => {
+      const pivot = new THREE.Group();
+      pivot.position.set(0.13 * side, 0.64, 0);
+
+      const jeans = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.105, 0.5, 8), jeansMat));
+      jeans.position.y = -0.25;
+      pivot.add(jeans);
+
+      const boot = cast(new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.15, 0.33), bootMat));
+      boot.position.set(0, -0.54, 0.04);
+      pivot.add(boot);
+      const band = new THREE.Mesh(new THREE.BoxGeometry(0.215, 0.05, 0.2), bootAccentMat);
+      band.position.set(0, -0.5, 0.08);
+      pivot.add(band);
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.05, 0.36), soleMat);
+      sole.position.set(0, -0.61, 0.045);
+      pivot.add(sole);
+
+      this.playerGroup.add(pivot);
+      return pivot;
+    };
+    this.playerLeftLeg = buildLeg(1);
+    this.playerRightLeg = buildLeg(-1);
+
+    // --- Upper body (bobs while walking) ---
+    const upper = new THREE.Group();
+    upper.position.y = 0.65;
+    this.playerBodyMesh = upper;
+    this.playerGroup.add(upper);
+
+    // Belt + buckle
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.245, 0.07, 12), beltMat);
+    belt.position.y = 0.0;
+    upper.add(belt);
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.065, 0.03), buckleMat);
+    buckle.position.set(0, 0.0, 0.245);
+    upper.add(buckle);
+
+    // Navy tee
+    const tee = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.52, 12), teeMat));
+    tee.position.y = 0.29;
+    upper.add(tee);
+
+    // Open cream jacket: a shell with a gap at the front so the tee shows
+    const jacketGap = 0.55;
+    const jacket = cast(
+      new THREE.Mesh(
+        new THREE.CylinderGeometry(0.26, 0.305, 0.66, 16, 1, true, jacketGap, Math.PI * 2 - jacketGap * 2),
+        jacketMat
+      )
+    );
+    jacket.position.y = 0.23;
+    upper.add(jacket);
+    const shoulders = cast(new THREE.Mesh(new THREE.SphereGeometry(0.262, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2.6), jacketMat));
+    shoulders.position.y = 0.54;
+    shoulders.scale.set(1, 0.55, 1);
+    upper.add(shoulders);
+    // Lapels
+    [-1, 1].forEach((side) => {
+      const lapel = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.24, 0.02), jacketMat);
+      lapel.position.set(0.1 * side, 0.46, 0.235);
+      lapel.rotation.z = 0.35 * side;
+      lapel.rotation.y = 0.35 * side;
+      upper.add(lapel);
     });
-    this.playerBodyMesh = new THREE.Mesh(bodyGeo, hoodieMat);
-    this.playerBodyMesh.position.y = 0.65;
-    this.playerBodyMesh.castShadow = !isSoftwareGl;
-    this.playerGroup.add(this.playerBodyMesh);
 
-    // 3. Cute explorer backpack
-    const packGeo = new THREE.BoxGeometry(0.48, 0.55, 0.32);
-    const packMat = new THREE.MeshStandardMaterial({ color: 0x0284c7, roughness: 0.6 });
-    const backpack = new THREE.Mesh(packGeo, packMat);
-    backpack.position.set(0, 0.65, -0.32);
-    this.playerGroup.add(backpack);
+    // Lanyard + ID card
+    const cordMat = mat(0x111111, 0.8);
+    [-1, 1].forEach((side) => {
+      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.3, 4), cordMat);
+      cord.position.set(0.06 * side, 0.43, 0.225);
+      cord.rotation.z = -0.32 * side;
+      cord.rotation.x = -0.2;
+      upper.add(cord);
+    });
+    const card = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.012), mat(0xf4f1ea, 0.5));
+    card.position.set(0, 0.25, 0.248);
+    upper.add(card);
+    const cardPhoto = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.004), mat(0x6a8fd8, 0.5));
+    cardPhoto.position.set(0, 0.27, 0.256);
+    upper.add(cardPhoto);
 
-    // 4. Head
-    const headGeo = new THREE.SphereGeometry(0.38, 8, 8);
-    const skinMat = new THREE.MeshStandardMaterial({ color: 0xffedd5, roughness: 0.6 });
-    this.playerHeadMesh = new THREE.Mesh(headGeo, skinMat);
-    this.playerHeadMesh.position.y = 1.38;
-    this.playerHeadMesh.castShadow = !isSoftwareGl;
-    this.playerGroup.add(this.playerHeadMesh);
+    // Arms (pivot at the shoulder)
+    const buildArm = (side: number) => {
+      const pivot = new THREE.Group();
+      pivot.position.set(0.34 * side, 0.52, 0);
+      pivot.rotation.z = 0.12 * side;
 
-    // 5. Beanie hat with pompom
-    const hatGeo = new THREE.SphereGeometry(0.4, 8, 8, 0, Math.PI * 2, 0, Math.PI / 2);
-    const hatMat = new THREE.MeshStandardMaterial({ color: 0xef4444, roughness: 0.8 });
-    const hat = new THREE.Mesh(hatGeo, hatMat);
-    hat.position.y = 1.48;
-    this.playerGroup.add(hat);
+      const sleeve = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.5, 8), jacketMat));
+      sleeve.position.y = -0.25;
+      pivot.add(sleeve);
+      const hand = cast(new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat));
+      hand.position.y = -0.54;
+      pivot.add(hand);
 
-    const pompomGeo = new THREE.SphereGeometry(0.12, 6, 6);
-    const pompomMat = new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.9 });
-    const pompom = new THREE.Mesh(pompomGeo, pompomMat);
-    pompom.position.set(0, 1.9, 0);
-    this.playerGroup.add(pompom);
+      upper.add(pivot);
+      return pivot;
+    };
+    this.playerLeftArm = buildArm(1);
+    this.playerRightArm = buildArm(-1);
 
-    // 6. Eyes
-    const eyeGeo = new THREE.SphereGeometry(0.05, 4, 4);
-    const eyeMat = new THREE.MeshBasicMaterial({ color: 0x1e293b });
-    const leftEye = new THREE.Mesh(eyeGeo, eyeMat);
-    leftEye.position.set(0.12, 1.42, 0.34);
-    this.playerGroup.add(leftEye);
+    // Neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.12, 8), skinMat);
+    neck.position.y = 0.6;
+    upper.add(neck);
 
-    const rightEye = new THREE.Mesh(eyeGeo, eyeMat);
-    rightEye.position.set(-0.12, 1.42, 0.34);
-    this.playerGroup.add(rightEye);
+    // --- Head ---
+    const head = new THREE.Group();
+    head.position.y = 0.88;
+    this.playerHeadMesh = head;
+    upper.add(head);
 
-    // 7. Legs / Shoes
-    const legGeo = new THREE.CylinderGeometry(0.12, 0.12, 0.45, 6);
-    const legMat = new THREE.MeshStandardMaterial({ color: 0x1e293b, roughness: 0.7 });
+    const face = cast(new THREE.Mesh(new THREE.SphereGeometry(0.29, 16, 12), skinMat));
+    face.scale.set(1, 1.06, 0.98);
+    head.add(face);
 
-    this.playerLeftLeg = new THREE.Mesh(legGeo, legMat);
-    this.playerLeftLeg.position.set(0.16, 0.22, 0);
-    this.playerGroup.add(this.playerLeftLeg);
+    // Hair: dark cap of hair at the back and sides, peeking under the cap
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 10, Math.PI * 0.8, Math.PI * 1.4, 0.25, Math.PI * 0.6), hairMat);
+    hair.position.y = 0.01;
+    head.add(hair);
+    [-1, 1].forEach((side) => {
+      const sideburn = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.08), hairMat);
+      sideburn.position.set(0.265 * side, 0.0, 0.1);
+      head.add(sideburn);
+    });
 
-    this.playerRightLeg = new THREE.Mesh(legGeo, legMat);
-    this.playerRightLeg.position.set(-0.16, 0.22, 0);
-    this.playerGroup.add(this.playerRightLeg);
+    // Eyes, brows, smile
+    const scleraMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+    const pupilMat = new THREE.MeshBasicMaterial({ color: 0x24170f });
+    [-1, 1].forEach((side) => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 8, 6), scleraMat);
+      eye.position.set(0.1 * side, 0.02, 0.255);
+      eye.scale.set(1, 1, 0.5);
+      head.add(eye);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), pupilMat);
+      pupil.position.set(0.1 * side, 0.02, 0.278);
+      pupil.scale.set(1, 1, 0.4);
+      head.add(pupil);
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.03, 0.03), hairMat);
+      brow.position.set(0.105 * side, 0.1, 0.262);
+      brow.rotation.z = -0.12 * side;
+      head.add(brow);
+    });
+    const smile = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.01, 4, 10, Math.PI * 0.8), mat(0x8a4b3a, 0.6));
+    smile.position.set(0, -0.11, 0.268);
+    smile.rotation.z = Math.PI + Math.PI * 0.1;
+    head.add(smile);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), skinMat);
+    nose.position.set(0, -0.03, 0.29);
+    head.add(nose);
+
+    // Tan baseball cap: crown + front brim
+    const crown = cast(new THREE.Mesh(new THREE.SphereGeometry(0.31, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat));
+    crown.position.y = 0.06;
+    crown.scale.set(1, 0.86, 1.02);
+    head.add(crown);
+    const capBand = new THREE.Mesh(new THREE.CylinderGeometry(0.312, 0.312, 0.05, 16, 1, true), capMat);
+    capBand.position.y = 0.06;
+    head.add(capBand);
+    const brim = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.025, 16, 1, false, -Math.PI / 2, Math.PI), capMat));
+    brim.scale.set(1.15, 1, 1.35);
+    brim.position.set(0, 0.075, 0.17);
+    brim.rotation.x = 0.12;
+    head.add(brim);
+    const button = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 4), capMat);
+    button.position.y = 0.3;
+    head.add(button);
+
+    // Headphones over the cap
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.028, 6, 18, Math.PI), headphoneMat);
+    band.position.y = 0.0;
+    band.rotation.z = 0;
+    head.add(band);
+    [-1, 1].forEach((side) => {
+      const cup = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 12), headphoneMat));
+      cup.rotation.z = Math.PI / 2;
+      cup.position.set(0.31 * side, -0.02, 0);
+      head.add(cup);
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.02, 12), mat(0x111111, 0.9));
+      pad.rotation.z = Math.PI / 2;
+      pad.position.set(0.355 * side, -0.02, 0);
+      head.add(pad);
+    });
 
     this.scene.add(this.playerGroup);
   }
@@ -1251,6 +1398,8 @@ export class IslandSceneController {
       this.walkTime += dt * 14;
       this.playerLeftLeg.rotation.x = Math.sin(this.walkTime) * 0.7;
       this.playerRightLeg.rotation.x = -Math.sin(this.walkTime) * 0.7;
+      this.playerLeftArm.rotation.x = -Math.sin(this.walkTime) * 0.6;
+      this.playerRightArm.rotation.x = Math.sin(this.walkTime) * 0.6;
       this.playerBodyMesh.position.y = 0.65 + Math.abs(Math.sin(this.walkTime)) * 0.06;
 
       // Footstep sound & dust puff
@@ -1265,6 +1414,8 @@ export class IslandSceneController {
       this.playerVel.z = 0;
       this.playerLeftLeg.rotation.x = 0;
       this.playerRightLeg.rotation.x = 0;
+      this.playerLeftArm.rotation.x = 0;
+      this.playerRightArm.rotation.x = 0;
       this.playerBodyMesh.position.y = 0.65;
     }
 

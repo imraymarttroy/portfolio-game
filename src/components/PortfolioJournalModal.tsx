@@ -1,3 +1,4 @@
+import avatarUrl from '../assets/raymart-avatar.webp';
 import React, { useState } from 'react';
 import { PesoCoin } from './PesoCoin';
 import {
@@ -146,9 +147,13 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
             <div className="flex flex-col gap-6">
               {/* Profile Card */}
               <div className="p-6 rounded-3xl bg-white border border-amber-200/80 shadow-xs flex flex-col sm:flex-row items-center sm:items-start gap-6">
-                <div className="w-24 h-24 rounded-2xl bg-amber-500/20 border-2 border-amber-500/40 flex items-center justify-center text-4xl shadow-inner">
-                  <span>🎨</span>
-                </div>
+                <img
+                  src={avatarUrl}
+                  alt={`${PORTFOLIO_OWNER.name} avatar`}
+                  width={96}
+                  height={96}
+                  className="w-24 h-24 rounded-2xl object-cover border-2 border-amber-500/60 shadow-md bg-amber-900 shrink-0"
+                />
                 <div className="flex-1 text-center sm:text-left">
                   <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 mb-1">
                     <h3 className="text-2xl font-extrabold tracking-tight text-amber-950 font-display">
