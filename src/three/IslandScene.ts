@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ISLAND_NPCS, ISLAND_SHELLS } from '../data/portfolioData';
-import { distance2D, getTerrainHeight, ISLAND_RADIUS } from '../game/logic';
+import { distance2D, getTerrainHeight, ISLAND_RADIUS, WATER_LEVEL } from '../game/logic';
 import {
   Collider,
   getBushes,
@@ -38,6 +38,9 @@ export interface IslandSceneCallbacks {
   onShellCollected: (shellId: string) => void;
   onPlayerMoved: (pos: Vector3D) => void;
 }
+
+/** Hip height of the player avatar (legs pivot here, upper body sits here). */
+const PLAYER_HIP_Y = 0.42;
 
 export class IslandSceneController {
   private container: HTMLElement;
@@ -213,10 +216,7 @@ export class IslandSceneController {
       const z = pos.getZ(i);
       const dist = Math.sqrt(x * x + z * z);
 
-      let h = getTerrainHeight(x, z);
-      if (dist > 33) {
-        h = -0.7; // underwater drop-off
-      }
+      const h = getTerrainHeight(x, z); // already slopes under the water past the shore
       pos.setY(i, h);
 
       // Vertex color grading
@@ -263,11 +263,12 @@ export class IslandSceneController {
     });
 
     this.oceanMesh = new THREE.Mesh(oceanGeo, oceanMat);
-    this.oceanMesh.position.y = 0.05;
+    this.oceanMesh.position.y = WATER_LEVEL;
     this.scene.add(this.oceanMesh);
 
     // Shoreline foam ring
-    const foamGeo = new THREE.RingGeometry(24.5, 27.5, 48);
+    // Sits where the beach slope meets the water (see getTerrainHeight).
+    const foamGeo = new THREE.RingGeometry(30.6, 32.2, 64);
     foamGeo.rotateX(-Math.PI / 2);
     const foamMat = new THREE.MeshBasicMaterial({
       color: 0xffffff,
@@ -962,45 +963,52 @@ export class IslandSceneController {
     this.playerShadowDisc.position.y = 0.02;
     this.playerGroup.add(this.playerShadowDisc);
 
-    // Player avatar: Raymart Troy — tan cap, headphones, cream jacket over a
-    // navy tee, brown belt, jeans and hiking boots. Faces +Z.
-    const mat = (color: number, roughness = 0.7, metalness = 0) =>
+    // Player avatar: Raymart Troy in a chunky, heroic mobile-strategy cartoon
+    // style — oversized head, broad shoulders, big fists and boots, short
+    // sturdy legs. Keeps his tan cap, headphones, cream jacket over a navy
+    // tee, brown belt, jeans, hiking boots and ID lanyard. Faces +Z.
+    const mat = (color: number, roughness = 0.55, metalness = 0) =>
       new THREE.MeshStandardMaterial({ color, roughness, metalness });
-    const skinMat = mat(0xc98f68, 0.6);
-    const hairMat = mat(0x1d1612, 0.8);
-    const capMat = mat(0x9c6a2c, 0.75);
-    const headphoneMat = mat(0x2b2b2c, 0.45, 0.3);
-    const jacketMat = mat(0xd8c8ab, 0.85);
+    const skinMat = mat(0xd39a70, 0.5);
+    const hairMat = mat(0x1d1612, 0.7);
+    const capMat = mat(0xb07a30, 0.6);
+    const headphoneMat = mat(0x2b2b2c, 0.4, 0.3);
+    const jacketMat = mat(0xe6d6b6, 0.7);
     jacketMat.side = THREE.DoubleSide;
-    const teeMat = mat(0x1f2433, 0.8);
-    const jeansMat = mat(0x34507a, 0.85);
-    const beltMat = mat(0x6b4426, 0.6);
-    const buckleMat = mat(0xc9ccd1, 0.3, 0.8);
-    const bootMat = mat(0x2f2a27, 0.7);
-    const bootAccentMat = mat(0x7a3328, 0.7);
+    const teeMat = mat(0x1f2a44, 0.7);
+    const jeansMat = mat(0x3a5c92, 0.7);
+    const beltMat = mat(0x6b4426, 0.5);
+    const buckleMat = mat(0xf2c14e, 0.25, 0.85); // chunky gold buckle
+    const bootMat = mat(0x3a2f29, 0.6);
+    const bootAccentMat = mat(0x9a3b2c, 0.6);
     const soleMat = mat(0x141414, 0.9);
     const cast = (m: THREE.Mesh) => {
       m.castShadow = !isSoftwareGl;
       return m;
     };
 
-    // --- Legs (pivot at the hip so they swing naturally) ---
+    // --- Short sturdy legs (pivot at the hip so they swing naturally) ---
     const buildLeg = (side: number) => {
       const pivot = new THREE.Group();
-      pivot.position.set(0.13 * side, 0.64, 0);
+      pivot.position.set(0.16 * side, PLAYER_HIP_Y, 0);
 
-      const jeans = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.115, 0.105, 0.5, 8), jeansMat));
-      jeans.position.y = -0.25;
+      const jeans = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.125, 0.26, 10), jeansMat));
+      jeans.position.y = -0.13;
       pivot.add(jeans);
 
-      const boot = cast(new THREE.Mesh(new THREE.BoxGeometry(0.21, 0.15, 0.33), bootMat));
-      boot.position.set(0, -0.54, 0.04);
+      // Oversized boots
+      const boot = cast(new THREE.Mesh(new THREE.BoxGeometry(0.27, 0.19, 0.4), bootMat));
+      boot.position.set(0, -0.31, 0.06);
       pivot.add(boot);
-      const band = new THREE.Mesh(new THREE.BoxGeometry(0.215, 0.05, 0.2), bootAccentMat);
-      band.position.set(0, -0.5, 0.08);
+      const toe = cast(new THREE.Mesh(new THREE.SphereGeometry(0.135, 10, 8, 0, Math.PI * 2, 0, Math.PI / 2), bootMat));
+      toe.scale.set(1, 0.9, 0.8);
+      toe.position.set(0, -0.395, 0.24);
+      pivot.add(toe);
+      const band = new THREE.Mesh(new THREE.BoxGeometry(0.28, 0.06, 0.22), bootAccentMat);
+      band.position.set(0, -0.24, 0.1);
       pivot.add(band);
-      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.23, 0.05, 0.36), soleMat);
-      sole.position.set(0, -0.61, 0.045);
+      const sole = new THREE.Mesh(new THREE.BoxGeometry(0.29, 0.05, 0.46), soleMat);
+      sole.position.set(0, -0.4, 0.08);
       pivot.add(sole);
 
       this.playerGroup.add(pivot);
@@ -1011,74 +1019,86 @@ export class IslandSceneController {
 
     // --- Upper body (bobs while walking) ---
     const upper = new THREE.Group();
-    upper.position.y = 0.65;
+    upper.position.y = PLAYER_HIP_Y;
     this.playerBodyMesh = upper;
     this.playerGroup.add(upper);
 
-    // Belt + buckle
-    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.245, 0.245, 0.07, 12), beltMat);
-    belt.position.y = 0.0;
+    // Belt + chunky buckle
+    const belt = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.3, 0.09, 16), beltMat);
+    belt.position.y = 0.02;
     upper.add(belt);
-    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.065, 0.03), buckleMat);
-    buckle.position.set(0, 0.0, 0.245);
+    const buckle = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.1, 0.04), buckleMat);
+    buckle.position.set(0, 0.02, 0.3);
     upper.add(buckle);
 
-    // Navy tee
-    const tee = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.24, 0.52, 12), teeMat));
-    tee.position.y = 0.29;
+    // Navy tee: V-shaped heroic torso, wide at the shoulders
+    const tee = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.35, 0.27, 0.5, 16), teeMat));
+    tee.position.y = 0.3;
     upper.add(tee);
 
     // Open cream jacket: a shell with a gap at the front so the tee shows
-    const jacketGap = 0.55;
+    const jacketGap = 0.5;
     const jacket = cast(
       new THREE.Mesh(
-        new THREE.CylinderGeometry(0.26, 0.305, 0.66, 16, 1, true, jacketGap, Math.PI * 2 - jacketGap * 2),
+        new THREE.CylinderGeometry(0.38, 0.31, 0.56, 18, 1, true, jacketGap, Math.PI * 2 - jacketGap * 2),
         jacketMat
       )
     );
-    jacket.position.y = 0.23;
+    jacket.position.y = 0.28;
     upper.add(jacket);
-    const shoulders = cast(new THREE.Mesh(new THREE.SphereGeometry(0.262, 14, 8, 0, Math.PI * 2, 0, Math.PI / 2.6), jacketMat));
-    shoulders.position.y = 0.54;
-    shoulders.scale.set(1, 0.55, 1);
+    const shoulders = cast(new THREE.Mesh(new THREE.SphereGeometry(0.385, 18, 10, 0, Math.PI * 2, 0, Math.PI / 2.4), jacketMat));
+    shoulders.position.y = 0.55;
+    shoulders.scale.set(1, 0.5, 0.95);
     upper.add(shoulders);
-    // Lapels
+    // Collar + lapels
+    const collar = new THREE.Mesh(new THREE.TorusGeometry(0.17, 0.045, 6, 16), jacketMat);
+    collar.rotation.x = Math.PI / 2;
+    collar.position.y = 0.6;
+    upper.add(collar);
     [-1, 1].forEach((side) => {
-      const lapel = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.24, 0.02), jacketMat);
-      lapel.position.set(0.1 * side, 0.46, 0.235);
+      const lapel = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.26, 0.025), jacketMat);
+      lapel.position.set(0.13 * side, 0.45, 0.32);
       lapel.rotation.z = 0.35 * side;
-      lapel.rotation.y = 0.35 * side;
+      lapel.rotation.y = 0.3 * side;
       upper.add(lapel);
     });
 
     // Lanyard + ID card
     const cordMat = mat(0x111111, 0.8);
     [-1, 1].forEach((side) => {
-      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.01, 0.01, 0.3, 4), cordMat);
-      cord.position.set(0.06 * side, 0.43, 0.225);
+      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 0.3, 4), cordMat);
+      cord.position.set(0.07 * side, 0.45, 0.3);
       cord.rotation.z = -0.32 * side;
-      cord.rotation.x = -0.2;
+      cord.rotation.x = -0.25;
       upper.add(cord);
     });
-    const card = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.12, 0.012), mat(0xf4f1ea, 0.5));
-    card.position.set(0, 0.25, 0.248);
+    const card = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.15, 0.015), mat(0xf4f1ea, 0.5));
+    card.position.set(0, 0.27, 0.315);
     upper.add(card);
-    const cardPhoto = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.05, 0.004), mat(0x6a8fd8, 0.5));
-    cardPhoto.position.set(0, 0.27, 0.256);
+    const cardPhoto = new THREE.Mesh(new THREE.BoxGeometry(0.065, 0.065, 0.005), mat(0x6a8fd8, 0.5));
+    cardPhoto.position.set(0, 0.295, 0.325);
     upper.add(cardPhoto);
 
-    // Arms (pivot at the shoulder)
+    // Arms (pivot at the shoulder): thick sleeves, cuffs and big fists
     const buildArm = (side: number) => {
       const pivot = new THREE.Group();
-      pivot.position.set(0.34 * side, 0.52, 0);
-      pivot.rotation.z = 0.12 * side;
+      pivot.position.set(0.43 * side, 0.5, 0);
+      pivot.rotation.z = 0.2 * side;
 
-      const sleeve = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.095, 0.5, 8), jacketMat));
-      sleeve.position.y = -0.25;
+      const sleeve = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.105, 0.36, 10), jacketMat));
+      sleeve.position.y = -0.18;
       pivot.add(sleeve);
-      const hand = cast(new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 6), skinMat));
-      hand.position.y = -0.54;
-      pivot.add(hand);
+      const cuff = new THREE.Mesh(new THREE.TorusGeometry(0.105, 0.03, 6, 12), jacketMat);
+      cuff.rotation.x = Math.PI / 2;
+      cuff.position.y = -0.35;
+      pivot.add(cuff);
+      const fist = cast(new THREE.Mesh(new THREE.SphereGeometry(0.13, 12, 10), skinMat));
+      fist.scale.set(1, 0.95, 1.08);
+      fist.position.y = -0.45;
+      pivot.add(fist);
+      const thumb = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), skinMat);
+      thumb.position.set(-0.06 * side, -0.41, 0.1);
+      pivot.add(thumb);
 
       upper.add(pivot);
       return pivot;
@@ -1086,86 +1106,107 @@ export class IslandSceneController {
     this.playerLeftArm = buildArm(1);
     this.playerRightArm = buildArm(-1);
 
-    // Neck
-    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.085, 0.12, 8), skinMat);
-    neck.position.y = 0.6;
+    // Short thick neck
+    const neck = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.13, 0.1, 10), skinMat);
+    neck.position.y = 0.63;
     upper.add(neck);
 
-    // --- Head ---
+    // --- Oversized head ---
     const head = new THREE.Group();
-    head.position.y = 0.88;
+    head.position.y = 0.95;
+    head.scale.setScalar(1.35);
     this.playerHeadMesh = head;
     upper.add(head);
 
-    const face = cast(new THREE.Mesh(new THREE.SphereGeometry(0.29, 16, 12), skinMat));
-    face.scale.set(1, 1.06, 0.98);
+    const face = cast(new THREE.Mesh(new THREE.SphereGeometry(0.29, 20, 16), skinMat));
+    face.scale.set(1.04, 1.02, 0.98);
     head.add(face);
+    // Strong, squared cartoon jaw
+    const jaw = cast(new THREE.Mesh(new THREE.SphereGeometry(0.25, 18, 12), skinMat));
+    jaw.scale.set(1.12, 0.78, 1.02);
+    jaw.position.set(0, -0.1, 0.02);
+    head.add(jaw);
+    // Ears
+    [-1, 1].forEach((side) => {
+      const ear = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 6), skinMat);
+      ear.scale.set(0.6, 1, 0.9);
+      ear.position.set(0.3 * side, -0.03, 0.02);
+      head.add(ear);
+    });
 
     // Hair: dark cap of hair at the back and sides, peeking under the cap
-    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.3, 16, 10, Math.PI * 0.8, Math.PI * 1.4, 0.25, Math.PI * 0.6), hairMat);
+    const hair = new THREE.Mesh(new THREE.SphereGeometry(0.3, 18, 10, Math.PI * 0.8, Math.PI * 1.4, 0.25, Math.PI * 0.6), hairMat);
     hair.position.y = 0.01;
     head.add(hair);
     [-1, 1].forEach((side) => {
-      const sideburn = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.12, 0.08), hairMat);
-      sideburn.position.set(0.265 * side, 0.0, 0.1);
+      const sideburn = new THREE.Mesh(new THREE.BoxGeometry(0.05, 0.13, 0.08), hairMat);
+      sideburn.position.set(0.27 * side, 0.0, 0.1);
       head.add(sideburn);
     });
 
-    // Eyes, brows, smile
+    // Big bold eyes with highlights, thick confident brows, wide grin
     const scleraMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
     const pupilMat = new THREE.MeshBasicMaterial({ color: 0x24170f });
     [-1, 1].forEach((side) => {
-      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.048, 8, 6), scleraMat);
-      eye.position.set(0.1 * side, 0.02, 0.255);
-      eye.scale.set(1, 1, 0.5);
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.07, 12, 10), scleraMat);
+      eye.position.set(0.105 * side, 0.0, 0.25);
+      eye.scale.set(0.95, 1.1, 0.5);
       head.add(eye);
-      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.03, 8, 6), pupilMat);
-      pupil.position.set(0.1 * side, 0.02, 0.278);
-      pupil.scale.set(1, 1, 0.4);
+      const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.042, 10, 8), pupilMat);
+      pupil.position.set(0.1 * side, -0.005, 0.28);
+      pupil.scale.set(1, 1.1, 0.4);
       head.add(pupil);
-      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.11, 0.03, 0.03), hairMat);
-      brow.position.set(0.105 * side, 0.1, 0.262);
-      brow.rotation.z = -0.12 * side;
+      const glint = new THREE.Mesh(new THREE.SphereGeometry(0.013, 6, 4), scleraMat);
+      glint.position.set(0.112 * side, 0.015, 0.297);
+      head.add(glint);
+      const brow = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.045, 0.04), hairMat);
+      brow.position.set(0.11 * side, 0.075, 0.283);
+      brow.rotation.z = 0.28 * side; // inner ends low: determined look
       head.add(brow);
     });
-    const smile = new THREE.Mesh(new THREE.TorusGeometry(0.06, 0.01, 4, 10, Math.PI * 0.8), mat(0x8a4b3a, 0.6));
-    smile.position.set(0, -0.11, 0.268);
-    smile.rotation.z = Math.PI + Math.PI * 0.1;
-    head.add(smile);
-    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 6), skinMat);
-    nose.position.set(0, -0.03, 0.29);
+    // Grin: dark mouth with a row of teeth
+    const mouth = new THREE.Mesh(new THREE.CircleGeometry(0.1, 16, Math.PI, Math.PI), mat(0x5a2620, 0.8));
+    mouth.scale.set(1.15, 0.7, 1);
+    mouth.position.set(0, -0.12, 0.292);
+    mouth.rotation.x = -0.25;
+    head.add(mouth);
+    const teeth = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.03, 0.01), scleraMat);
+    teeth.position.set(0, -0.132, 0.296);
+    teeth.rotation.x = -0.25;
+    head.add(teeth);
+    const nose = new THREE.Mesh(new THREE.SphereGeometry(0.055, 10, 8), skinMat);
+    nose.scale.set(1, 0.85, 0.9);
+    nose.position.set(0, -0.025, 0.29);
     head.add(nose);
 
     // Tan baseball cap: crown + front brim
-    const crown = cast(new THREE.Mesh(new THREE.SphereGeometry(0.31, 16, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat));
-    crown.position.y = 0.06;
-    crown.scale.set(1, 0.86, 1.02);
+    const crown = cast(new THREE.Mesh(new THREE.SphereGeometry(0.31, 18, 8, 0, Math.PI * 2, 0, Math.PI / 2), capMat));
+    crown.position.y = 0.1;
+    crown.scale.set(1.02, 0.86, 1.02);
     head.add(crown);
-    const capBand = new THREE.Mesh(new THREE.CylinderGeometry(0.312, 0.312, 0.05, 16, 1, true), capMat);
-    capBand.position.y = 0.06;
+    const capBand = new THREE.Mesh(new THREE.CylinderGeometry(0.316, 0.316, 0.05, 18, 1, true), capMat);
+    capBand.position.y = 0.1;
     head.add(capBand);
-    const brim = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.025, 16, 1, false, -Math.PI / 2, Math.PI), capMat));
-    brim.scale.set(1.15, 1, 1.35);
-    brim.position.set(0, 0.075, 0.17);
+    const brim = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.2, 0.2, 0.03, 16, 1, false, -Math.PI / 2, Math.PI), capMat));
+    brim.scale.set(1.2, 1, 1.4);
+    brim.position.set(0, 0.115, 0.17);
     brim.rotation.x = 0.12;
     head.add(brim);
-    const button = new THREE.Mesh(new THREE.SphereGeometry(0.03, 6, 4), capMat);
-    button.position.y = 0.3;
+    const button = new THREE.Mesh(new THREE.SphereGeometry(0.035, 6, 4), capMat);
+    button.position.y = 0.34;
     head.add(button);
 
     // Headphones over the cap
-    const band = new THREE.Mesh(new THREE.TorusGeometry(0.33, 0.028, 6, 18, Math.PI), headphoneMat);
-    band.position.y = 0.0;
-    band.rotation.z = 0;
+    const band = new THREE.Mesh(new THREE.TorusGeometry(0.335, 0.032, 6, 18, Math.PI), headphoneMat);
     head.add(band);
     [-1, 1].forEach((side) => {
-      const cup = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 12), headphoneMat));
+      const cup = cast(new THREE.Mesh(new THREE.CylinderGeometry(0.105, 0.105, 0.09, 14), headphoneMat));
       cup.rotation.z = Math.PI / 2;
-      cup.position.set(0.31 * side, -0.02, 0);
+      cup.position.set(0.32 * side, -0.02, 0);
       head.add(cup);
-      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.075, 0.075, 0.02, 12), mat(0x111111, 0.9));
+      const pad = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 0.02, 14), mat(0x111111, 0.9));
       pad.rotation.z = Math.PI / 2;
-      pad.position.set(0.355 * side, -0.02, 0);
+      pad.position.set(0.37 * side, -0.02, 0);
       head.add(pad);
     });
 
@@ -1400,7 +1441,7 @@ export class IslandSceneController {
       this.playerRightLeg.rotation.x = -Math.sin(this.walkTime) * 0.7;
       this.playerLeftArm.rotation.x = -Math.sin(this.walkTime) * 0.6;
       this.playerRightArm.rotation.x = Math.sin(this.walkTime) * 0.6;
-      this.playerBodyMesh.position.y = 0.65 + Math.abs(Math.sin(this.walkTime)) * 0.06;
+      this.playerBodyMesh.position.y = PLAYER_HIP_Y + Math.abs(Math.sin(this.walkTime)) * 0.06;
 
       // Footstep sound & dust puff
       this.stepSoundTimer += dt;
@@ -1416,7 +1457,7 @@ export class IslandSceneController {
       this.playerRightLeg.rotation.x = 0;
       this.playerLeftArm.rotation.x = 0;
       this.playerRightArm.rotation.x = 0;
-      this.playerBodyMesh.position.y = 0.65;
+      this.playerBodyMesh.position.y = PLAYER_HIP_Y;
     }
 
     // Apply movement with collision: slide around trees, buildings and villagers,
