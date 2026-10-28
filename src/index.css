@@ -1,0 +1,13 @@
+@import "tailwindcss";
+
+@theme {
+  --font-display: 'Fredoka', cursive, system-ui, sans-serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
