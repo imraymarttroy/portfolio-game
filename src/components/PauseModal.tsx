@@ -59,7 +59,7 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-amber-800/80">Golden Shells</span>
+            <span className="text-[10px] font-bold uppercase text-amber-800/80">Gold Coins</span>
             <span className="text-lg font-black font-mono text-amber-950 tabular-nums">
               {collectedShells.size} / {ISLAND_SHELLS.length}
             </span>

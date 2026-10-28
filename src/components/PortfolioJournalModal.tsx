@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
+import { PesoCoin } from './PesoCoin';
 import {
   X,
-  Sparkles,
   ExternalLink,
   Mail,
   Copy,
@@ -118,7 +118,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
             { id: 'projects', label: 'Featured Works', icon: '🎨' },
             { id: 'resume', label: 'Resume & History', icon: '📄' },
             { id: 'skills', label: 'Skills & Toolkit', icon: '⚡' },
-            { id: 'secrets', label: 'Island Lore & Shells', icon: '🐚' },
+            { id: 'secrets', label: 'Island Lore & Coins', icon: '🪙' },
             { id: 'contact', label: 'Contact & Hire', icon: '📬' },
           ].map((tab) => (
             <button
@@ -197,7 +197,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
                   </div>
                   <p className="text-sm font-extrabold text-amber-950">{islandRank}</p>
                   <p className="text-xs text-amber-800/80 mt-1">
-                    Talk to all 5 island villagers and find all 8 shells!
+                    Talk to all 5 island villagers and collect all 8 gold coins!
                   </p>
                 </div>
 
@@ -219,8 +219,8 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
 
                 <div className="p-4 rounded-2xl bg-amber-100/70 border border-amber-200">
                   <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
-                    <span>Golden Shells</span>
+                    <PesoCoin className="w-4 h-4" />
+                    <span>Gold Coins</span>
                   </div>
                   <p className="text-2xl font-black text-amber-950 font-mono">
                     {collectedShells.size} / {ISLAND_SHELLS.length}
@@ -516,8 +516,8 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
               {/* Shells Checklist */}
               <div>
                 <h4 className="text-sm font-extrabold uppercase tracking-wider text-amber-900 mb-3 flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-amber-500" />
-                  <span>Golden Nautilus Shells ({collectedShells.size}/8)</span>
+                  <PesoCoin className="w-4 h-4" />
+                  <span>Gold ₱ Coins ({collectedShells.size}/8)</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {ISLAND_SHELLS.map((shell) => {
@@ -531,7 +531,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
                             : 'bg-white/60 border-amber-200/60'
                         }`}
                       >
-                        <span className="text-xl">{isFound ? '🐚' : '❓'}</span>
+                        <PesoCoin className="w-6 h-6 shrink-0" dim={!isFound} />
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <span className="font-bold text-xs text-amber-950">{shell.name}</span>

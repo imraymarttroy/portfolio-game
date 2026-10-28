@@ -410,7 +410,7 @@ export const ISLAND_NPCS: NPCData[] = [
 export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_pier',
-    name: 'Harbor Lighthouse Shell',
+    name: 'Harbor Lighthouse Coin',
     hint: 'Resting on the weathered wooden planks of Captain Barnaby’s dock.',
     position: [-22, 0.45, 22],
     collected: false,
@@ -418,7 +418,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_windmill',
-    name: 'Motion Cogwheel Nautilus',
+    name: 'Motion Cogwheel Coin',
     hint: 'Hidden behind the spinning blades of the Windmill workshop.',
     position: [22, 1.25, 14],
     collected: false,
@@ -426,7 +426,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_pavilion',
-    name: 'Narabi Prismatic Shell',
+    name: 'Narabi Prismatic Coin',
     hint: 'Gleaming quietly beside the crystal pond near Curator Celeste.',
     position: [-18, 0.95, -16],
     collected: false,
@@ -434,7 +434,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_peak',
-    name: 'Stargazer Pearl of Manila',
+    name: 'Stargazer Coin of Manila',
     hint: 'Perched high on the grassy summit beside Sage Zephyr’s telescope.',
     position: [0, 4.85, -23],
     collected: false,
@@ -442,7 +442,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_beach_east',
-    name: 'Telecom Sunrise Amber',
+    name: 'Telecom Sunrise Coin',
     hint: 'Washed ashore on the eastern sandy beach near the drift logs.',
     position: [24, 0.15, -6],
     collected: false,
@@ -450,7 +450,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_beach_west',
-    name: 'The Bianca Tidepool Shell',
+    name: 'The Bianca Tidepool Coin',
     hint: 'Tucked between the western sea boulders near the quiet shore.',
     position: [-24, 0.15, 2],
     collected: false,
@@ -458,7 +458,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_gazebo',
-    name: 'Courier Conch of Likod',
+    name: 'Courier Coin of Likod',
     hint: 'Resting on the village center flowerbed by Puck’s courier cart.',
     position: [4, 0.65, 8],
     collected: false,
@@ -466,7 +466,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   },
   {
     id: 'shell_bridge',
-    name: 'UMak CAST Star Shell',
+    name: 'UMak CAST Star Coin',
     hint: 'Resting under the stone bridge that crosses the gentle mountain brook.',
     position: [-5, 0.35, 3],
     collected: false,

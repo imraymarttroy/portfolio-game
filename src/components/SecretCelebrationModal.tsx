@@ -43,14 +43,14 @@ export const SecretCelebrationModal: React.FC<SecretCelebrationModalProps> = ({
             Master Islander & Chief Architect
           </h2>
           <p className="text-xs sm:text-sm text-amber-900/80 font-medium mt-1">
-            You discovered all 8 Golden Nautilus Shells and uncovered every secret of Troy’s software craftsmanship!
+            You collected all 8 gold ₱ coins and uncovered every story behind Raymart Troy’s creative work!
           </p>
         </div>
 
         <div className="w-full bg-white/80 p-4 rounded-2xl border border-amber-200 text-left text-xs space-y-2">
           <div className="flex items-center gap-2 text-emerald-800 font-bold">
             <Check className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>All 8 Golden Shells Gathered</span>
+            <span>All 8 Gold Coins Collected</span>
           </div>
           <div className="flex items-center gap-2 text-emerald-800 font-bold">
             <Check className="w-4 h-4 text-emerald-600 shrink-0" />

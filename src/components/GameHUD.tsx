@@ -1,5 +1,6 @@
 import React from 'react';
-import { Volume2, VolumeX, Pause, BookOpen, Sparkles, Navigation } from 'lucide-react';
+import { Volume2, VolumeX, Pause, BookOpen, Navigation } from 'lucide-react';
+import { PesoCoin } from './PesoCoin';
 import { ISLAND_NPCS } from '../data/portfolioData';
 import { Vector3D } from '../types/game';
 
@@ -60,7 +61,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
                 <span>NPCs: {visitedNpcs.size}/5</span>
                 <span>•</span>
                 <span className="flex items-center gap-1 text-amber-300">
-                  <Sparkles className="w-3 h-3 inline" />
+                  <PesoCoin className="w-3.5 h-3.5 inline" />
                   {collectedShells.size}/8
                 </span>
               </div>

@@ -786,23 +786,120 @@ export class IslandSceneController {
     });
   }
 
+  /** Draws one face of the gold ₱ coin (flat-top hexagon) onto a canvas texture. */
+  private createPesoCoinTexture(): THREE.CanvasTexture {
+    const size = 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d')!;
+    const c = size / 2;
+
+    const hexPath = (r: number) => {
+      ctx.beginPath();
+      for (let i = 0; i < 6; i++) {
+        const a = (i * Math.PI) / 3;
+        const x = c + Math.cos(a) * r;
+        const y = c + Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.closePath();
+    };
+
+    // Outer face: warm gold gradient.
+    const face = ctx.createLinearGradient(0, 0, 0, size);
+    face.addColorStop(0, '#ffe48a');
+    face.addColorStop(0.5, '#f8bb2c');
+    face.addColorStop(1, '#e48d14');
+    hexPath(c);
+    ctx.fillStyle = face;
+    ctx.fill();
+
+    // Raised rim and recessed centre.
+    hexPath(c * 0.78);
+    ctx.lineWidth = 10;
+    ctx.strokeStyle = '#c97a10';
+    ctx.stroke();
+    const inner = ctx.createLinearGradient(0, c * 0.3, 0, size - c * 0.3);
+    inner.addColorStop(0, '#f2a51f');
+    inner.addColorStop(1, '#fcc844');
+    ctx.fillStyle = inner;
+    ctx.fill();
+    hexPath(c * 0.72);
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = 'rgba(255, 243, 196, 0.75)';
+    ctx.stroke();
+
+    // ₱ glyph drawn as strokes (no font dependency): shadow, then highlight.
+    const drawPeso = (dx: number, dy: number, color: string, width: number) => {
+      ctx.save();
+      ctx.translate(dx, dy);
+      ctx.strokeStyle = color;
+      ctx.lineWidth = width;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+      ctx.beginPath();
+      // Stem
+      ctx.moveTo(108, 178);
+      ctx.lineTo(108, 80);
+      // Bowl
+      ctx.lineTo(136, 80);
+      ctx.arc(136, 106, 26, -Math.PI / 2, Math.PI / 2);
+      ctx.lineTo(108, 132);
+      // Two bars
+      ctx.moveTo(86, 98);
+      ctx.lineTo(176, 98);
+      ctx.moveTo(86, 116);
+      ctx.lineTo(176, 116);
+      ctx.stroke();
+      ctx.restore();
+    };
+    drawPeso(4, 5, 'rgba(140, 72, 6, 0.55)', 15);
+    drawPeso(0, 0, '#fff0b3', 15);
+    drawPeso(0, 0, '#f6b42a', 9);
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.colorSpace = THREE.SRGBColorSpace;
+    tex.anisotropy = 4;
+    return tex;
+  }
+
   private buildShells() {
-    const shellMat = new THREE.MeshStandardMaterial({
-      color: 0xfbbf24, // Bright amber gold
-      roughness: 0.25,
-      metalness: 0.75,
-      emissive: 0xf59e0b,
-      emissiveIntensity: 0.45,
+    const COIN_R = 0.42;
+    const COIN_DEPTH = 0.16;
+
+    const faceTex = this.createPesoCoinTexture();
+    const faceMat = new THREE.MeshStandardMaterial({
+      map: faceTex,
+      emissive: 0xffffff,
+      emissiveMap: faceTex,
+      emissiveIntensity: 0.28,
+      roughness: 0.32,
+      metalness: 0.45,
     });
+    const edgeMat = new THREE.MeshStandardMaterial({
+      color: 0xe0961a,
+      emissive: 0xb86a08,
+      emissiveIntensity: 0.3,
+      roughness: 0.3,
+      metalness: 0.7,
+    });
+
+    // Hexagonal coin body, standing upright with a flat top like the face art.
+    const bodyGeo = new THREE.CylinderGeometry(COIN_R, COIN_R, COIN_DEPTH, 6);
+    bodyGeo.rotateX(Math.PI / 2);
+    bodyGeo.rotateZ(Math.PI / 6);
+    const faceGeo = new THREE.CircleGeometry(COIN_R * 0.995, 6);
 
     ISLAND_SHELLS.forEach((shell) => {
       const group = new THREE.Group();
       const x = shell.position[0];
       const z = shell.position[2];
-      const y = getTerrainHeight(x, z) + 0.35;
+      const y = getTerrainHeight(x, z) + 0.65;
       group.position.set(x, y, z);
 
-      // Contact glow ring
+      // Contact glow ring on the ground
       const ringGeo = new THREE.RingGeometry(0.3, 0.55, 12);
       ringGeo.rotateX(-Math.PI / 2);
       const ringMat = new THREE.MeshBasicMaterial({
@@ -813,20 +910,32 @@ export class IslandSceneController {
         depthWrite: false,
       });
       const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.y = -0.3;
+      ring.position.y = -0.6;
       group.add(ring);
 
-      // Nautilus spiral / ribbed shell geometry (procedural toruses)
-      for (let s = 0; s < 3; s++) {
-        const torRadius = 0.25 - s * 0.06;
-        const tubeRadius = 0.09 - s * 0.02;
-        const torusGeo = new THREE.TorusGeometry(torRadius, tubeRadius, 6, 12);
-        torusGeo.rotateY(Math.PI / 2);
-        const segment = new THREE.Mesh(torusGeo, shellMat);
-        segment.position.set(s * 0.08, s * 0.04, 0);
-        group.add(segment);
-      }
+      const coin = new THREE.Group();
+      const body = new THREE.Mesh(bodyGeo, edgeMat);
+      body.castShadow = !isSoftwareGl;
+      coin.add(body);
 
+      const front = new THREE.Mesh(faceGeo, faceMat);
+      front.position.z = COIN_DEPTH / 2 + 0.002;
+      coin.add(front);
+
+      const back = new THREE.Mesh(faceGeo, faceMat);
+      back.position.z = -COIN_DEPTH / 2 - 0.002;
+      back.rotation.y = Math.PI;
+      coin.add(back);
+
+      // Little sparkle that twinkles on the rim
+      const sparkleMat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.9, depthWrite: false });
+      const sparkle = new THREE.Mesh(new THREE.OctahedronGeometry(0.07, 0), sparkleMat);
+      sparkle.scale.set(0.5, 1.6, 0.5);
+      sparkle.position.set(-COIN_R * 0.55, COIN_R * 0.72, COIN_DEPTH / 2 + 0.03);
+      sparkle.name = 'sparkle';
+      coin.add(sparkle);
+
+      group.add(coin);
       this.scene.add(group);
       this.shellMeshes.set(shell.id, group);
     });
@@ -1077,8 +1186,14 @@ export class IslandSceneController {
     this.shellMeshes.forEach((mesh, shellId) => {
       if (!this.collectedShells.has(shellId)) {
         mesh.rotation.y += dt * 1.8;
-        const baseY = getTerrainHeight(mesh.position.x, mesh.position.z) + 0.35;
+        const baseY = getTerrainHeight(mesh.position.x, mesh.position.z) + 0.65;
         mesh.position.y = baseY + Math.sin(time * 3 + mesh.position.x) * 0.12;
+        const sparkle = mesh.getObjectByName('sparkle');
+        if (sparkle) {
+          const tw = Math.max(0, Math.sin(time * 4 + mesh.position.z * 1.7));
+          sparkle.scale.set(0.5 * tw, 1.6 * tw, 0.5 * tw);
+          sparkle.rotation.z = time * 2;
+        }
       }
     });
 
