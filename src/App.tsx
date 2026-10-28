@@ -219,7 +219,7 @@ export default function App() {
       {/* Isolated Three.js WebGL Container */}
       <div
         ref={canvasContainerRef}
-        className="absolute inset-0 w-full h-full z-0 cursor-grab active:cursor-grabbing"
+        className="absolute inset-0 w-full h-full z-0 cursor-glove-grab"
       />
 
       {/* Screen 1: Title Screen */}

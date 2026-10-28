@@ -153,3 +153,43 @@ body {
 @media (prefers-reduced-motion: reduce) {
   .adv-logo, .adv-sunburst { animation: none; }
 }
+
+/*
+ * Cartoon white-glove cursors (src/assets/cursors). Unlayered on purpose so
+ * they win over Tailwind's cursor-* utilities. Hotspots sit on the fingertip
+ * for the pointing gloves and in the palm for the grab gloves.
+ */
+
+html,
+body {
+  cursor: url('./assets/cursors/point.svg') 14 1, default;
+}
+
+a[href],
+button,
+[role='button'],
+label[for],
+select,
+summary,
+.cursor-pointer {
+  cursor: url('./assets/cursors/tap.svg') 14 1, pointer;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: url('./assets/cursors/point.svg') 14 1, default;
+}
+
+input:not([type='button']):not([type='submit']):not([type='checkbox']):not([type='radio']),
+textarea,
+[contenteditable='true'] {
+  cursor: text;
+}
+
+.cursor-glove-grab {
+  cursor: url('./assets/cursors/open.svg') 22 22, grab;
+}
+
+.cursor-glove-grab:active {
+  cursor: url('./assets/cursors/fist.svg') 22 22, grabbing;
+}
