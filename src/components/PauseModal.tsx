@@ -53,13 +53,13 @@ export const PauseModal: React.FC<PauseModalProps> = ({
         {/* Quick Stat Tiles */}
         <div className="grid grid-cols-2 gap-2 bg-amber-100/70 p-3 rounded-2xl border border-amber-200">
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-amber-800/80">Villagers</span>
+            <span className="text-[10px] font-bold uppercase text-amber-800/80">Family</span>
             <span className="text-lg font-black font-mono text-amber-950 tabular-nums">
               {visitedNpcs.size} / {ISLAND_NPCS.length}
             </span>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] font-bold uppercase text-amber-800/80">Gold Coins</span>
+            <span className="text-[10px] font-bold uppercase text-amber-800/80">Peso Coins</span>
             <span className="text-lg font-black font-mono text-amber-950 tabular-nums">
               {collectedShells.size} / {ISLAND_SHELLS.length}
             </span>

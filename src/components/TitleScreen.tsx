@@ -106,6 +106,9 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ onStart, onOpenJournal
           <span className="text-amber-500">•</span>
           <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">Tab</span>
           <span>Field Guide</span>
+          <span className="text-amber-500">•</span>
+          <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">Scroll / Pinch</span>
+          <span>Zoom</span>
         </div>
         <div className="text-amber-100/70 font-mono text-[11px] text-center">
           © Raymart Troy · Built with Three.js

@@ -202,14 +202,14 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
                   </div>
                   <p className="text-sm font-extrabold text-amber-950">{islandRank}</p>
                   <p className="text-xs text-amber-800/80 mt-1">
-                    Talk to all 5 island villagers and collect all 8 gold coins!
+                    Talk to all 5 island villagers and collect all 8 peso coins!
                   </p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-amber-100/70 border border-amber-200">
                   <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
                     <span>💬</span>
-                    <span>Villagers Consulted</span>
+                    <span>Family Consulted</span>
                   </div>
                   <p className="text-2xl font-black text-amber-950 font-mono">
                     {visitedNpcs.size} / {ISLAND_NPCS.length}
@@ -225,7 +225,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
                 <div className="p-4 rounded-2xl bg-amber-100/70 border border-amber-200">
                   <div className="flex items-center gap-2 text-xs font-bold text-amber-800 uppercase tracking-wider mb-1">
                     <PesoCoin className="w-4 h-4" />
-                    <span>Gold Coins</span>
+                    <span>Peso Coins</span>
                   </div>
                   <p className="text-2xl font-black text-amber-950 font-mono">
                     {collectedShells.size} / {ISLAND_SHELLS.length}
@@ -522,7 +522,7 @@ export const PortfolioJournalModal: React.FC<PortfolioJournalModalProps> = ({
               <div>
                 <h4 className="text-sm font-extrabold uppercase tracking-wider text-amber-900 mb-3 flex items-center gap-2">
                   <PesoCoin className="w-4 h-4" />
-                  <span>Gold ₱ Coins ({collectedShells.size}/8)</span>
+                  <span>Peso Coins ({collectedShells.size}/8)</span>
                 </h4>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {ISLAND_SHELLS.map((shell) => {
