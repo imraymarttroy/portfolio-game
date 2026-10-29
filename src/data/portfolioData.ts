@@ -178,7 +178,7 @@ export const TESTIMONIALS = [
 export const ISLAND_NPCS: NPCData[] = [
   {
     id: 'captain_barnaby',
-    name: 'Captain Barnaby',
+    name: 'Vherissa',
     role: 'Lighthouse Keeper & Harbor Master',
     title: 'The Pier Mariner',
     accentColor: '#38bdf8', // Sky blue
@@ -190,7 +190,7 @@ export const ISLAND_NPCS: NPCData[] = [
     summaryQuote: '“Raymart started on the theater stage and turned drama into visual magic!”',
     dialogue: {
       id: 'barnaby_intro',
-      speaker: 'Captain Barnaby',
+      speaker: 'Vherissa',
       title: 'Harbor Master',
       greeting: 'Ahoy there, traveler! Step ashore on the Isle of Troy. If you want to know how Raymart Troy learned to steer creative ships, you came to the right lighthouse!',
       ambientChatter: [
@@ -201,7 +201,7 @@ export const ISLAND_NPCS: NPCData[] = [
       options: [
         {
           text: 'How did Raymart start in multimedia arts?',
-          response: 'Barnaby beams with pride: “Raymart discovered his passion in theater and stage performance at Higher School ng UMak! He then took his Bachelor of Arts in Broadcast Production at the University of Makati, editing documentaries, leading publicity teams, and performing in productions like Filipino Heroes League and KATI!”',
+          response: 'Vherissa beams with pride: “Raymart discovered his passion in theater and stage performance at Higher School ng UMak! He then took his Bachelor of Arts in Broadcast Production at the University of Makati, editing documentaries, leading publicity teams, and performing in productions like Filipino Heroes League and KATI!”',
           topicId: 'story',
         },
         {
@@ -223,7 +223,7 @@ export const ISLAND_NPCS: NPCData[] = [
   },
   {
     id: 'gearsmith_pip',
-    name: 'Gearsmith Pip',
+    name: 'Rayangel Keanu',
     role: 'Windmill Engineer & Craft Tinkerer',
     title: 'The Media Smith',
     accentColor: '#fb923c', // Orange
@@ -235,7 +235,7 @@ export const ISLAND_NPCS: NPCData[] = [
     summaryQuote: '“Branding 90%, Graphic Design 87%, Video Editing 85% — calibrated to perfection!”',
     dialogue: {
       id: 'pip_intro',
-      speaker: 'Gearsmith Pip',
+      speaker: 'Rayangel Keanu',
       title: 'Chief Tinkerer',
       greeting: 'Whirr, clack! Welcome to the Windmill Workshop! I inspect every frame of video, curve of typography, and color palette Raymart designs. Want to see his creative toolkit?',
       ambientChatter: [
@@ -246,7 +246,7 @@ export const ISLAND_NPCS: NPCData[] = [
       options: [
         {
           text: 'What are Raymart’s core creative skills?',
-          response: '“Pip spins his gear meter: Branding at 90%, Graphic Design at 87%, Video Editing at 85%, 2D Motion Graphics at 85%, Photography at 86%, and Front-End Web Development at 75%! Every visual is tuned for maximum emotional punch!”',
+          response: '“Rayangel spins his gear meter: Branding at 90%, Graphic Design at 87%, Video Editing at 85%, 2D Motion Graphics at 85%, Photography at 86%, and Front-End Web Development at 75%! Every visual is tuned for maximum emotional punch!”',
           topicId: 'skills',
         },
         {
@@ -264,7 +264,7 @@ export const ISLAND_NPCS: NPCData[] = [
   },
   {
     id: 'curator_celeste',
-    name: 'Curator Celeste',
+    name: 'Hygea Marie',
     role: 'Art Director & Gallery Curator',
     title: 'The Gallery Curator',
     accentColor: '#c084fc', // Purple
@@ -276,7 +276,7 @@ export const ISLAND_NPCS: NPCData[] = [
     summaryQuote: '“Raymart turns brand identity and human portraits into unforgettable art.”',
     dialogue: {
       id: 'celeste_intro',
-      speaker: 'Curator Celeste',
+      speaker: 'Hygea Marie',
       title: 'Master Curator',
       greeting: 'Bonjour! You have arrived at the Crystal Pavilion. Here we showcase Raymart Troy’s most celebrated creative works. Which masterpiece would you like me to unveil?',
       ambientChatter: [
@@ -287,7 +287,7 @@ export const ISLAND_NPCS: NPCData[] = [
       options: [
         {
           text: 'Tell me about Narabi Coffee & Matcha branding.',
-          response: 'Celeste adjusts her beret: “An exquisite Japanese-inspired brand identity! Raymart crafted the minimalist logo, earth-toned packaging, matcha tin decals, and social collaterals that gave Narabi a cohesive, warm voice.”',
+          response: 'Hygea adjusts her beret: “An exquisite Japanese-inspired brand identity! Raymart crafted the minimalist logo, earth-toned packaging, matcha tin decals, and social collaterals that gave Narabi a cohesive, warm voice.”',
           topicId: 'narabi',
           externalLink: {
             label: 'View Narabi on Behance',
@@ -317,7 +317,7 @@ export const ISLAND_NPCS: NPCData[] = [
   },
   {
     id: 'sage_zephyr',
-    name: 'Sage Zephyr',
+    name: 'Hyziery',
     role: 'Island Philosopher & Creative Mentor',
     title: 'The Mountain Sage',
     accentColor: '#34d399', // Emerald
@@ -329,7 +329,7 @@ export const ISLAND_NPCS: NPCData[] = [
     summaryQuote: '“Every brand has a story worth telling. Raymart brings that story to life.”',
     dialogue: {
       id: 'zephyr_intro',
-      speaker: 'Sage Zephyr',
+      speaker: 'Hyziery',
       title: 'Stargazer Sage',
       greeting: 'Sit beside the fire, traveler. Up here under the stars, we contemplate not just what visuals look like, but how they touch human hearts. What wisdom do you seek about Raymart’s ethos?',
       ambientChatter: [
@@ -340,7 +340,7 @@ export const ISLAND_NPCS: NPCData[] = [
       options: [
         {
           text: 'What is Raymart’s creative philosophy?',
-          response: 'Zephyr smiles into the campfire: “Raymart firmly believes that every single brand has a story worth telling. Rather than chasing generic trends, he shapes visuals around your authentic message so the result is memorable, consistent, and personal.”',
+          response: 'Hyziery smiles into the campfire: “Raymart firmly believes that every single brand has a story worth telling. Rather than chasing generic trends, he shapes visuals around your authentic message so the result is memorable, consistent, and personal.”',
           topicId: 'philosophy',
         },
         {
@@ -358,7 +358,7 @@ export const ISLAND_NPCS: NPCData[] = [
   },
   {
     id: 'puck_courier',
-    name: 'Puck the Courier',
+    name: 'Troy',
     role: 'Island Messenger & Good News Bearer',
     title: 'The Swift Courier',
     accentColor: '#f43f5e', // Rose
@@ -370,9 +370,9 @@ export const ISLAND_NPCS: NPCData[] = [
     summaryQuote: '“Call 0955 188 3472 or email imraymarttroy@gmail.com — special delivery!”',
     dialogue: {
       id: 'puck_intro',
-      speaker: 'Puck the Courier',
+      speaker: 'Troy',
       title: 'Island Postman',
-      greeting: 'Special delivery! *Pants happily* I’m Puck, carrier of the best news on the island! Are you here to book Raymart Troy for multimedia design, video production, or branding?',
+      greeting: 'Special delivery! *Pants happily* I’m Troy, carrier of the best news on the island! Are you here to book Raymart Troy for multimedia design, video production, or branding?',
       ambientChatter: [
         '“Email: imraymarttroy@gmail.com • Phone: +63 955 188 3472!”',
         '“Follow Raymart on Behance at behance.net/raymarttroy!”',
@@ -381,7 +381,7 @@ export const ISLAND_NPCS: NPCData[] = [
       options: [
         {
           text: 'How can I contact Raymart Troy right away?',
-          response: 'Puck bounces with joy: “Send an email directly to imraymarttroy@gmail.com, or dial 0955 188 3472 (+63 955 188 3472)! Raymart is based in Manila, Philippines and responds promptly!”',
+          response: 'Troy bounces with joy: “Send an email directly to imraymarttroy@gmail.com, or dial 0955 188 3472 (+63 955 188 3472)! Raymart is based in Manila, Philippines and responds promptly!”',
           topicId: 'contact_info',
           externalLink: {
             label: 'Send Email to Raymart',
@@ -398,8 +398,8 @@ export const ISLAND_NPCS: NPCData[] = [
           },
         },
         {
-          text: 'Tell me about the 8 Golden Shells on this island!',
-          response: '“They are the 8 Golden Shells of Manila! Each one holds a secret milestone from Raymart’s journey: from UMak theater to Globe Telecom and Narabi Coffee. Gather all 8 for the Master Artist Endorsement!”',
+          text: 'Tell me about the 8 Peso Coins on this island!',
+          response: '“They are the 8 Peso Coins of Manila! Each one holds a secret milestone from Raymart’s journey: from UMak theater to Globe Telecom and Narabi Coffee. Gather all 8 for the Master Artist Endorsement!”',
           topicId: 'shells_lore',
         },
       ],
@@ -411,7 +411,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_pier',
     name: 'Harbor Lighthouse Coin',
-    hint: 'Resting on the weathered wooden planks of Captain Barnaby’s dock.',
+    hint: 'Resting on the weathered wooden planks of Vherissa’s dock.',
     position: [-22, 0.45, 22],
     collected: false,
     lore: 'Milestone: Raymart graduated from University of Makati with a BA in Broadcast Production!',
@@ -427,7 +427,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_pavilion',
     name: 'Narabi Prismatic Coin',
-    hint: 'Gleaming quietly beside the crystal pond near Curator Celeste.',
+    hint: 'Gleaming quietly beside the crystal pond near Hygea Marie.',
     position: [-18, 0.95, -16],
     collected: false,
     lore: 'Project Lore: Narabi Coffee & Matcha — Japanese-inspired branding and packaging design on Behance!',
@@ -435,7 +435,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_peak',
     name: 'Stargazer Coin of Manila',
-    hint: 'Perched high on the grassy summit beside Sage Zephyr’s telescope.',
+    hint: 'Perched high on the grassy summit beside Hyziery’s telescope.',
     position: [0, 4.85, -23],
     collected: false,
     lore: 'Ethos: “Every brand has a story worth telling. Raymart brings that story to life.”',
@@ -459,7 +459,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_gazebo',
     name: 'Courier Coin of Likod',
-    hint: 'Resting on the village center flowerbed by Puck’s courier cart.',
+    hint: 'Resting on the village center flowerbed by Troy’s courier cart.',
     position: [4, 0.65, 8],
     collected: false,
     lore: 'Direct Reach: imraymarttroy@gmail.com • 0955 188 3472 • Manila, Philippines!',
