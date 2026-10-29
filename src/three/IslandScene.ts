@@ -3,6 +3,9 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { ISLAND_NPCS, ISLAND_SHELLS } from '../data/portfolioData';
 import { distance2D, getTerrainHeight, ISLAND_RADIUS, WATER_LEVEL } from '../game/logic';
 import {
+  CAMPFIRE_POS,
+  CAMPFIRE_SEAT_RADIUS,
+  SUMMIT_POS,
   Collider,
   getBushes,
   getSurfaceHeight,
@@ -71,6 +74,7 @@ export class IslandSceneController {
   private windmillBladesGroup!: THREE.Group;
   private lighthouseBeamGroup!: THREE.Group;
   private campfireLight!: THREE.PointLight;
+  private campfireFlames: THREE.Mesh[] = [];
   private oceanMesh!: THREE.Mesh;
 
   // Particle systems
@@ -155,7 +159,8 @@ export class IslandSceneController {
     this.buildLighthouse();
     this.buildWindmill();
     this.buildPavilion();
-    this.buildCampfirePeak();
+    this.buildFamilyCampfire();
+    this.buildSummitLookout();
     this.buildPier();
     this.buildFoliage();
     this.buildNpcs();
@@ -515,56 +520,96 @@ export class IslandSceneController {
     this.scene.add(group);
   }
 
-  private buildCampfirePeak() {
+  /** The family campfire in the middle of the island: fire pit, flames, warm glow. */
+  private buildFamilyCampfire() {
     const group = new THREE.Group();
-    const x = 0;
-    const z = -20;
-    const y = getTerrainHeight(x, z);
-    group.position.set(x, y, z);
+    const { x, z } = CAMPFIRE_POS;
+    group.position.set(x, getTerrainHeight(x, z), z);
 
     // Fire pit ring stones
-    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x475569, roughness: 0.9 });
-    for (let i = 0; i < 8; i++) {
-      const angle = (i * Math.PI) / 4;
-      const sx = Math.cos(angle) * 0.9;
-      const sz = Math.sin(angle) * 0.9;
-      const stoneGeo = new THREE.DodecahedronGeometry(0.24, 0);
+    const stoneMat = new THREE.MeshStandardMaterial({ color: 0x64748b, roughness: 0.9 });
+    const stoneGeo = new THREE.DodecahedronGeometry(0.26, 0);
+    for (let i = 0; i < 10; i++) {
+      const angle = (i * Math.PI * 2) / 10;
       const stone = new THREE.Mesh(stoneGeo, stoneMat);
-      stone.position.set(sx, 0.15, sz);
+      stone.position.set(Math.cos(angle) * 0.95, 0.15, Math.sin(angle) * 0.95);
+      stone.rotation.set(i, i * 2, 0);
+      stone.castShadow = !isSoftwareGl;
       group.add(stone);
     }
 
+    // Crossed firewood
+    const woodMat = new THREE.MeshStandardMaterial({ color: 0x5b3a1e, roughness: 0.85 });
+    const firewoodGeo = new THREE.CylinderGeometry(0.1, 0.1, 1.3, 6);
+    firewoodGeo.rotateZ(Math.PI / 2);
+    for (let i = 0; i < 3; i++) {
+      const wood = new THREE.Mesh(firewoodGeo, woodMat);
+      wood.position.y = 0.14;
+      wood.rotation.y = (i * Math.PI) / 3;
+      group.add(wood);
+    }
+
     // Glowing coals
-    const coalGeo = new THREE.ConeGeometry(0.55, 0.65, 6);
     const coalMat = new THREE.MeshStandardMaterial({
       color: 0xf97316,
       emissive: 0xea580c,
-      emissiveIntensity: 0.8,
+      emissiveIntensity: 0.9,
       roughness: 0.5,
     });
-    const coals = new THREE.Mesh(coalGeo, coalMat);
-    coals.position.y = 0.32;
+    const coals = new THREE.Mesh(new THREE.SphereGeometry(0.42, 8, 6, 0, Math.PI * 2, 0, Math.PI / 2), coalMat);
+    coals.scale.set(1, 0.45, 1);
+    coals.position.y = 0.1;
     group.add(coals);
 
-    // Campfire PointLight
-    this.campfireLight = new THREE.PointLight(0xf97316, 2.2, 10);
-    this.campfireLight.position.set(0, 0.8, 0);
+    // Flickering flames: outer orange, inner yellow
+    const flameDefs: [number, number, number, number, number][] = [
+      // color, radius, height, offsetX, offsetZ
+      [0xfb923c, 0.42, 1.25, 0, 0],
+      [0xf97316, 0.26, 0.9, 0.22, 0.12],
+      [0xfb923c, 0.24, 0.85, -0.2, -0.1],
+      [0xfde047, 0.22, 0.85, 0, 0.02],
+    ];
+    flameDefs.forEach(([color, radius, height, ox, oz]) => {
+      const geo = new THREE.ConeGeometry(radius, height, 7);
+      geo.translate(0, height / 2, 0);
+      const flame = new THREE.Mesh(
+        geo,
+        new THREE.MeshBasicMaterial({ color, transparent: true, opacity: 0.88, depthWrite: false })
+      );
+      flame.position.set(ox, 0.18, oz);
+      group.add(flame);
+      this.campfireFlames.push(flame);
+    });
+
+    // Warm glow on the ground around the fire
+    const glow = new THREE.Mesh(
+      new THREE.CircleGeometry(4.6, 32),
+      new THREE.MeshBasicMaterial({
+        color: 0xffb36b,
+        transparent: true,
+        opacity: 0.22,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+      })
+    );
+    glow.rotation.x = -Math.PI / 2;
+    glow.position.y = 0.04;
+    group.add(glow);
+
+    // Campfire PointLight (flickers in the update loop)
+    this.campfireLight = new THREE.PointLight(0xff8a3d, 3, 14);
+    this.campfireLight.position.set(0, 1.1, 0);
     group.add(this.campfireLight);
 
-    // Wooden log benches
-    const logGeo = new THREE.CylinderGeometry(0.28, 0.28, 2.2, 8);
-    logGeo.rotateZ(Math.PI / 2);
-    const logMat = new THREE.MeshStandardMaterial({ color: 0x543621, roughness: 0.85 });
-    const bench1 = new THREE.Mesh(logGeo, logMat);
-    bench1.position.set(0, 0.25, 1.8);
-    group.add(bench1);
+    this.scene.add(group);
+  }
 
-    const bench2 = new THREE.Mesh(logGeo, logMat);
-    bench2.position.set(-1.8, 0.25, 0);
-    bench2.rotation.y = Math.PI / 2;
-    group.add(bench2);
+  /** Summit lookout: the brass telescope on the peak. */
+  private buildSummitLookout() {
+    const group = new THREE.Group();
+    const { x, z } = SUMMIT_POS;
+    group.position.set(x, getTerrainHeight(x, z), z);
 
-    // Brass telescope
     const tripodGeo = new THREE.CylinderGeometry(0.04, 0.04, 1.3, 6);
     const brassMat = new THREE.MeshStandardMaterial({ color: 0xd97706, roughness: 0.3, metalness: 0.7 });
     const leg1 = new THREE.Mesh(tripodGeo, brassMat);
@@ -653,6 +698,10 @@ export class IslandSceneController {
   }
 
   private buildNpcs() {
+    const seatLogGeo = new THREE.CylinderGeometry(0.3, 0.3, 1.5, 10);
+    seatLogGeo.rotateZ(Math.PI / 2);
+    const seatLogMat = new THREE.MeshStandardMaterial({ color: 0x6b4423, roughness: 0.85 });
+
     ISLAND_NPCS.forEach((npc) => {
       const group = new THREE.Group();
       const x = npc.position[0];
@@ -768,6 +817,20 @@ export class IslandSceneController {
 
       group.add(emoteGroup);
       this.npcEmoteMeshes.set(npc.id, emoteGroup);
+
+      // Family members around the campfire sit on a log facing the fire.
+      const seated =
+        Math.abs(distance2D(x, z, CAMPFIRE_POS.x, CAMPFIRE_POS.z) - CAMPFIRE_SEAT_RADIUS) < 0.3;
+      if (seated) {
+        const lift = 0.42;
+        group.position.y += lift;
+        shadow.visible = false;
+        const log = new THREE.Mesh(seatLogGeo, seatLogMat);
+        log.position.y = -lift + 0.24;
+        log.castShadow = !isSoftwareGl;
+        log.receiveShadow = !isSoftwareGl;
+        group.add(log);
+      }
 
       this.scene.add(group);
       this.npcGroups.set(npc.id, group);
@@ -1405,8 +1468,13 @@ export class IslandSceneController {
       this.lighthouseBeamGroup.rotation.y += dt * 0.9;
     }
     if (this.campfireLight) {
-      this.campfireLight.intensity = 2.0 + Math.sin(time * 12) * 0.35 + Math.cos(time * 7) * 0.2;
+      this.campfireLight.intensity = 3 + Math.sin(time * 12) * 0.45 + Math.cos(time * 7) * 0.3;
     }
+    this.campfireFlames.forEach((flame, i) => {
+      const f = Math.sin(time * (9 + i * 2.3) + i) * 0.12 + Math.sin(time * 17 + i * 3) * 0.06;
+      flame.scale.set(1 - f * 0.4, 1 + f, 1 - f * 0.4);
+      flame.rotation.y = time * (0.6 + i * 0.25);
+    });
 
     // Floating animation on shells
     this.shellMeshes.forEach((mesh, shellId) => {
