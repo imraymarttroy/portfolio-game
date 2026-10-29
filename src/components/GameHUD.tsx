@@ -1,4 +1,5 @@
 import React from 'react';
+import { CAMPFIRE_POS } from '../game/world';
 import { Volume2, VolumeX, Pause, BookOpen, Navigation } from 'lucide-react';
 import { PesoCoin } from './PesoCoin';
 import { ISLAND_NPCS } from '../data/portfolioData';
@@ -31,6 +32,7 @@ export const GameHUD: React.FC<GameHUDProps> = ({
 
   // Derive current island sector name for immersion
   const currentSector = (() => {
+    if (Math.hypot(playerPos.x - CAMPFIRE_POS.x, playerPos.z - CAMPFIRE_POS.z) < 6) return 'Family Campfire';
     if (playerPos.z < -10) return 'Stargazer Peak';
     if (playerPos.x < -10 && playerPos.z > 10) return 'Lighthouse Pier';
     if (playerPos.x > 10 && playerPos.z > 5) return 'Windmill Knoll';
