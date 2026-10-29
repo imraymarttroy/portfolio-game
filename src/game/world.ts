@@ -63,27 +63,6 @@ const PIER_END = {
 // Foliage layout
 // ---------------------------------------------------------------------------
 
-export const TREE_SPOTS: [number, number][] = [
-  [8, 4], [10, 8], [6, 14], [-6, 12], [-10, 16],
-  [-8, -6], [-12, -4], [-18, -6], [-4, -12], [4, -14],
-  [12, -8], [15, -14], [20, -2], [22, 4], [-8, 22],
-  [-4, 20], [14, 18], [24, 10], [-20, 6], [-16, 8],
-  [2, -10], [6, -18], [-6, -18], [10, -20],
-];
-
-export interface TreeSpot { x: number; z: number; y: number; scale: number; index: number }
-
-/** Trees actually planted (spots too close to the waterline are skipped). */
-export function getTrees(): TreeSpot[] {
-  const trees: TreeSpot[] = [];
-  TREE_SPOTS.forEach(([x, z], index) => {
-    const y = getTerrainHeight(x, z);
-    if (y < 0.25) return;
-    trees.push({ x, z, y, index, scale: 0.85 + ((index * 7) % 30) / 100 });
-  });
-  return trees;
-}
-
 export interface BushSpot { x: number; z: number; y: number }
 
 export function getBushes(): BushSpot[] {
@@ -106,11 +85,6 @@ export function getBushes(): BushSpot[] {
 
 function buildStaticColliders(): Collider[] {
   const list: Collider[] = [];
-
-  // Trees: block around the trunk and the lowest branches, scaled per tree.
-  for (const t of getTrees()) {
-    list.push(circle(t.x, t.z, 1.05 * t.scale, WALL, 'tree'));
-  }
 
   // Bushes: low enough to hop over.
   for (const b of getBushes()) {
