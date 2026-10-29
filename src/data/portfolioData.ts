@@ -1,4 +1,11 @@
 import { NPCData, PortfolioProject, SkillCategory, ShellItem } from '../types/game';
+import { campfireSeat } from '../game/world';
+
+/** Position of a seat around the family campfire, as [x, y, z]. */
+const seatPosition = (angleDeg: number): [number, number, number] => {
+  const seat = campfireSeat(angleDeg);
+  return [seat.x, 0.7, seat.z];
+};
 
 export const PORTFOLIO_OWNER = {
   name: 'Raymart Troy',
@@ -182,10 +189,10 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Lighthouse Keeper & Harbor Master',
     title: 'The Pier Mariner',
     accentColor: '#38bdf8', // Sky blue
-    position: [-14.6, 0.6, 15.4],
-    rotation: 2.39,
+    position: seatPosition(300),
+    rotation: campfireSeat(300).rotation,
     avatarIcon: '⚓',
-    landmark: 'The Lighthouse & Wooden Pier',
+    landmark: 'The Family Campfire',
     portfolioTopic: 'Raymart Troy’s Origin & Theater Roots',
     summaryQuote: '“Raymart started on the theater stage and turned drama into visual magic!”',
     dialogue: {
@@ -227,10 +234,10 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Windmill Engineer & Craft Tinkerer',
     title: 'The Media Smith',
     accentColor: '#fb923c', // Orange
-    position: [14.0, 1.0, 9.3],
-    rotation: -2.16,
+    position: seatPosition(120),
+    rotation: campfireSeat(120).rotation,
     avatarIcon: '⚙️',
-    landmark: 'The Windmill Workshop',
+    landmark: 'The Family Campfire',
     portfolioTopic: 'Creative Toolkit, Motion & Skills',
     summaryQuote: '“Branding 90%, Graphic Design 87%, Video Editing 85% — calibrated to perfection!”',
     dialogue: {
@@ -268,10 +275,10 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Art Director & Gallery Curator',
     title: 'The Gallery Curator',
     accentColor: '#c084fc', // Purple
-    position: [-14, 1.4, -15.1],
-    rotation: 0,
+    position: seatPosition(240),
+    rotation: campfireSeat(240).rotation,
     avatarIcon: '🎨',
-    landmark: 'The Crystal Pavilion',
+    landmark: 'The Family Campfire',
     portfolioTopic: 'Featured Projects: Narabi, Bianca, & Reels',
     summaryQuote: '“Raymart turns brand identity and human portraits into unforgettable art.”',
     dialogue: {
@@ -321,10 +328,10 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Island Philosopher & Creative Mentor',
     title: 'The Mountain Sage',
     accentColor: '#34d399', // Emerald
-    position: [0, 4.6, -21.9],
-    rotation: 0,
+    position: seatPosition(180),
+    rotation: campfireSeat(180).rotation,
     avatarIcon: '✨',
-    landmark: 'The Stargazer Peak & Campfire',
+    landmark: 'The Family Campfire',
     portfolioTopic: 'Brand Storytelling Philosophy & Client Praise',
     summaryQuote: '“Every brand has a story worth telling. Raymart brings that story to life.”',
     dialogue: {
@@ -362,10 +369,10 @@ export const ISLAND_NPCS: NPCData[] = [
     role: 'Island Messenger & Good News Bearer',
     title: 'The Swift Courier',
     accentColor: '#f43f5e', // Rose
-    position: [2, 0.6, 6],
-    rotation: 0.8,
+    position: seatPosition(60),
+    rotation: campfireSeat(60).rotation,
     avatarIcon: '📬',
-    landmark: 'The Village Center Gazebo',
+    landmark: 'The Family Campfire',
     portfolioTopic: 'Contact Raymart, Phone & Social Links',
     summaryQuote: '“Call 0955 188 3472 or email imraymarttroy@gmail.com — special delivery!”',
     dialogue: {
@@ -411,7 +418,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_pier',
     name: 'Harbor Lighthouse Coin',
-    hint: 'Resting on the weathered wooden planks of Vherissa’s dock.',
+    hint: 'Resting on the weathered wooden planks of the lighthouse dock.',
     position: [-22, 0.45, 22],
     collected: false,
     lore: 'Milestone: Raymart graduated from University of Makati with a BA in Broadcast Production!',
@@ -427,7 +434,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_pavilion',
     name: 'Narabi Prismatic Coin',
-    hint: 'Gleaming quietly beside the crystal pond near Hygea Marie.',
+    hint: 'Gleaming quietly beside the pavilion café.',
     position: [-18, 0.95, -16],
     collected: false,
     lore: 'Project Lore: Narabi Coffee & Matcha — Japanese-inspired branding and packaging design on Behance!',
@@ -435,7 +442,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_peak',
     name: 'Stargazer Coin of Manila',
-    hint: 'Perched high on the grassy summit beside Hyziery’s telescope.',
+    hint: 'Perched high on the grassy summit beside the old telescope.',
     position: [0, 4.85, -23],
     collected: false,
     lore: 'Ethos: “Every brand has a story worth telling. Raymart brings that story to life.”',
@@ -459,7 +466,7 @@ export const ISLAND_SHELLS: ShellItem[] = [
   {
     id: 'shell_gazebo',
     name: 'Courier Coin of Likod',
-    hint: 'Resting on the village center flowerbed by Troy’s courier cart.',
+    hint: 'Resting on the flowerbed just past the family campfire.',
     position: [4, 0.65, 8],
     collected: false,
     lore: 'Direct Reach: imraymarttroy@gmail.com • 0955 188 3472 • Manila, Philippines!',
