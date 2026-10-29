@@ -38,7 +38,26 @@ const capsule = (
 export const LIGHTHOUSE_POS = { x: -18, z: 19 };
 export const WINDMILL_POS = { x: 18, z: 12 };
 export const PAVILION_POS = { x: -14, z: -14 };
-export const CAMPFIRE_POS = { x: 0, z: -20 };
+/** Family campfire in the middle of the island. */
+export const CAMPFIRE_POS = { x: 0, z: 1 };
+/** Distance from the fire to where each family member sits. */
+export const CAMPFIRE_SEAT_RADIUS = 3.2;
+/** Summit lookout with the telescope (where the old campfire used to be). */
+export const SUMMIT_POS = { x: 0, z: -20 };
+
+/**
+ * A seat around the family campfire. Angle 0 points toward the player's spawn
+ * (+z), which is left open so Raymart can walk in and join. Returns the seat
+ * position and the rotation that makes a character face the fire.
+ */
+export function campfireSeat(angleDeg: number): { x: number; z: number; rotation: number } {
+  const a = (angleDeg * Math.PI) / 180;
+  return {
+    x: CAMPFIRE_POS.x + Math.sin(a) * CAMPFIRE_SEAT_RADIUS,
+    z: CAMPFIRE_POS.z + Math.cos(a) * CAMPFIRE_SEAT_RADIUS,
+    rotation: a + Math.PI,
+  };
+}
 
 export const PAVILION_DECK_RADIUS = 4.3;
 export const PAVILION_DECK_TOP = 0.35;
@@ -112,13 +131,11 @@ function buildStaticColliders(): Collider[] {
   }
   list.push(capsule(PAVILION_POS.x - 0.8, PAVILION_POS.z, PAVILION_POS.x + 0.8, PAVILION_POS.z, 0.42, 1.1, 'counter'));
 
-  // Campfire peak: fire ring, two log benches, telescope.
-  const cx = CAMPFIRE_POS.x;
-  const cz = CAMPFIRE_POS.z;
-  list.push(circle(cx, cz, 1.15, 0.7, 'campfire'));
-  list.push(capsule(cx - 1.1, cz + 1.8, cx + 1.1, cz + 1.8, 0.3, 0.55, 'bench'));
-  list.push(capsule(cx - 1.8, cz - 1.1, cx - 1.8, cz + 1.1, 0.3, 0.55, 'bench'));
-  list.push(circle(cx + 2.2, cz - 0.8, 0.35, WALL, 'telescope'));
+  // Family campfire in the middle of the island (the family's seats are NPC colliders).
+  list.push(circle(CAMPFIRE_POS.x, CAMPFIRE_POS.z, 1.15, 0.7, 'campfire'));
+
+  // Summit lookout telescope.
+  list.push(circle(SUMMIT_POS.x + 2.2, SUMMIT_POS.z - 0.8, 0.35, WALL, 'telescope'));
 
   // Pier pilings stick up only under the deck, so they don't block walking.
   return list;
