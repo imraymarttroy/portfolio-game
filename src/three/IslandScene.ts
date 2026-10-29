@@ -6,7 +6,6 @@ import {
   Collider,
   getBushes,
   getSurfaceHeight,
-  getTrees,
   npcColliders,
   STATIC_COLLIDERS,
   stepPlayer,
@@ -41,6 +40,10 @@ export interface IslandSceneCallbacks {
 
 /** Hip height of the player avatar (legs pivot here, upper body sits here). */
 const PLAYER_HIP_Y = 0.42;
+
+/** Camera zoom limits, as multiples of the default follow distance. */
+const ZOOM_MIN = 0.4;
+const ZOOM_MAX = 2.2;
 
 export class IslandSceneController {
   private container: HTMLElement;
@@ -77,6 +80,13 @@ export class IslandSceneController {
 
   // State
   private gameState: GameState = 'title';
+
+  // Camera zoom (1 = default follow distance). Wheel, trackpad/touch pinch and +/- keys.
+  private zoom = 1;
+  private targetZoom = 1;
+  private activeTouches = new Map<number, { x: number; y: number }>();
+  private pinchStartDist = 0;
+  private pinchStartZoom = 1;
   private heldKeys: Set<string> = new Set();
   private playerPos = { x: 0, y: 0.5, z: 8 };
   private playerVel = { x: 0, y: 0, z: 0 };
@@ -163,6 +173,13 @@ export class IslandSceneController {
     window.addEventListener('keydown', this.onKeyDown);
     window.addEventListener('keyup', this.onKeyUp);
     window.addEventListener('blur', this.onWindowBlur);
+    const canvas = this.renderer.domElement;
+    canvas.style.touchAction = 'none'; // let our pinch handle zoom instead of the browser
+    canvas.addEventListener('wheel', this.onWheel, { passive: false });
+    canvas.addEventListener('pointerdown', this.onPointerDown);
+    canvas.addEventListener('pointermove', this.onPointerMove);
+    canvas.addEventListener('pointerup', this.onPointerUp);
+    canvas.addEventListener('pointercancel', this.onPointerUp);
 
     // Start render loop
     this.startLoop();
@@ -612,38 +629,6 @@ export class IslandSceneController {
   }
 
   private buildFoliage() {
-    const treeMatTrunk = new THREE.MeshStandardMaterial({ color: 0x543621, roughness: 0.9 });
-    const treeMatPine1 = new THREE.MeshStandardMaterial({ color: 0x15803d, roughness: 0.75 });
-    const treeMatPine2 = new THREE.MeshStandardMaterial({ color: 0x166534, roughness: 0.75 });
-
-    // Trees come from the shared world layout so their colliders line up exactly.
-    getTrees().forEach(({ x: tx, z: tz, y: ty, scale, index: idx }) => {
-      const tree = new THREE.Group();
-      tree.position.set(tx, ty, tz);
-      tree.scale.set(scale, scale, scale);
-
-      // Trunk
-      const trunkGeo = new THREE.CylinderGeometry(0.24, 0.35, 1.8, 6);
-      const trunk = new THREE.Mesh(trunkGeo, treeMatTrunk);
-      trunk.position.y = 0.9;
-      trunk.castShadow = !isSoftwareGl;
-      tree.add(trunk);
-
-      // 3 Stacked Foliage Cones
-      const pineMat = idx % 2 === 0 ? treeMatPine1 : treeMatPine2;
-      for (let c = 0; c < 3; c++) {
-        const coneRadius = 1.9 - c * 0.45;
-        const coneHeight = 1.6;
-        const coneGeo = new THREE.ConeGeometry(coneRadius, coneHeight, 7);
-        const cone = new THREE.Mesh(coneGeo, pineMat);
-        cone.position.y = 1.8 + c * 1.0;
-        cone.castShadow = !isSoftwareGl;
-        tree.add(cone);
-      }
-
-      this.scene.add(tree);
-    });
-
     // Flowering bushes and rock boulders
     const bushMat = new THREE.MeshStandardMaterial({ color: 0x4ade80, roughness: 0.8 });
     const flowerMat = new THREE.MeshStandardMaterial({ color: 0xf43f5e, roughness: 0.5 });
@@ -1290,11 +1275,63 @@ export class IslandSceneController {
   private onKeyDown = (e: KeyboardEvent) => {
     this.heldKeys.add(e.code);
 
+    if (this.gameState === 'playing') {
+      if (e.code === 'Equal' || e.code === 'NumpadAdd') this.zoomBy(1 / 1.2);
+      if (e.code === 'Minus' || e.code === 'NumpadSubtract') this.zoomBy(1.2);
+    }
+
     if (e.code === 'Space' && !this.isJumping && this.gameState === 'playing') {
       // If close to NPC, interact handled by overlay, else hop
       this.triggerJump();
     }
   };
+
+  /** Multiplies the camera distance: factor < 1 zooms in, > 1 zooms out. */
+  public zoomBy(factor: number) {
+    this.targetZoom = THREE.MathUtils.clamp(this.targetZoom * factor, ZOOM_MIN, ZOOM_MAX);
+  }
+
+  private onWheel = (e: WheelEvent) => {
+    if (this.gameState !== 'playing') return;
+    e.preventDefault();
+    const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
+    // Trackpad pinch arrives as ctrl+wheel with small deltas; make it a bit stronger.
+    this.zoomBy(Math.exp(dy * (e.ctrlKey ? 0.01 : 0.0015)));
+  };
+
+  private onPointerDown = (e: PointerEvent) => {
+    if (e.pointerType !== 'touch') return;
+    this.activeTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.activeTouches.size === 2) {
+      this.pinchStartDist = this.touchDistance();
+      this.pinchStartZoom = this.targetZoom;
+    }
+  };
+
+  private onPointerMove = (e: PointerEvent) => {
+    if (!this.activeTouches.has(e.pointerId)) return;
+    this.activeTouches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (this.activeTouches.size === 2 && this.pinchStartDist > 0 && this.gameState === 'playing') {
+      const d = this.touchDistance();
+      if (d > 0) {
+        this.targetZoom = THREE.MathUtils.clamp(
+          this.pinchStartZoom * (this.pinchStartDist / d),
+          ZOOM_MIN,
+          ZOOM_MAX
+        );
+      }
+    }
+  };
+
+  private onPointerUp = (e: PointerEvent) => {
+    this.activeTouches.delete(e.pointerId);
+    if (this.activeTouches.size < 2) this.pinchStartDist = 0;
+  };
+
+  private touchDistance(): number {
+    const [a, b] = [...this.activeTouches.values()];
+    return a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+  }
 
   private onKeyUp = (e: KeyboardEvent) => {
     this.heldKeys.delete(e.code);
@@ -1525,7 +1562,8 @@ export class IslandSceneController {
     }
 
     // 4. Camera Follow with Silky Damping
-    const camOffset = _vec3_scratch1.set(0, 7.5, 11);
+    this.zoom = THREE.MathUtils.damp(this.zoom, this.targetZoom, 10, dt);
+    const camOffset = _vec3_scratch1.set(0, 7.5, 11).multiplyScalar(this.zoom);
     _vec3_targetCam.copy(this.playerGroup.position).add(camOffset);
     _vec3_targetLook.copy(this.playerGroup.position).add(_vec3_scratch2.set(0, 1.2, 0));
 
@@ -1580,6 +1618,12 @@ export class IslandSceneController {
     window.removeEventListener('keydown', this.onKeyDown);
     window.removeEventListener('keyup', this.onKeyUp);
     window.removeEventListener('blur', this.onWindowBlur);
+    const canvas = this.renderer.domElement;
+    canvas.removeEventListener('wheel', this.onWheel);
+    canvas.removeEventListener('pointerdown', this.onPointerDown);
+    canvas.removeEventListener('pointermove', this.onPointerMove);
+    canvas.removeEventListener('pointerup', this.onPointerUp);
+    canvas.removeEventListener('pointercancel', this.onPointerUp);
 
     soundManager.stopAmbient();
     this.renderer.dispose();
