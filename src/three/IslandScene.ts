@@ -581,21 +581,6 @@ export class IslandSceneController {
       this.campfireFlames.push(flame);
     });
 
-    // Warm glow on the ground around the fire
-    const glow = new THREE.Mesh(
-      new THREE.CircleGeometry(4.6, 32),
-      new THREE.MeshBasicMaterial({
-        color: 0xffb36b,
-        transparent: true,
-        opacity: 0.22,
-        depthWrite: false,
-        blending: THREE.AdditiveBlending,
-      })
-    );
-    glow.rotation.x = -Math.PI / 2;
-    glow.position.y = 0.04;
-    group.add(glow);
-
     // Campfire PointLight (flickers in the update loop)
     this.campfireLight = new THREE.PointLight(0xff8a3d, 3, 14);
     this.campfireLight.position.set(0, 1.1, 0);
