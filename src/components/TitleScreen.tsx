@@ -1,14 +1,41 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { PORTFOLIO_OWNER } from '../data/portfolioData';
+import { sanitizeName } from '../game/rpg';
 
 interface TitleScreenProps {
-  onStart: () => void;
+  onStart: (name?: string) => void;
   onOpenJournal: () => void;
+  playerName: string;
+  playerColor: string;
+  level: number;
+  onNameChange: (name: string) => void;
 }
 
-export const TitleScreen: React.FC<TitleScreenProps> = ({ onStart, onOpenJournal }) => {
+export const TitleScreen: React.FC<TitleScreenProps> = ({
+  onStart,
+  onOpenJournal,
+  playerName,
+  playerColor,
+  level,
+  onNameChange,
+}) => {
+  const [draftName, setDraftName] = useState(playerName);
+
+  /** Saves the typed name if it's valid and returns the name to play as. */
+  const commitName = (): string => {
+    const clean = sanitizeName(draftName);
+    if (clean.length >= 2) {
+      onNameChange(clean);
+      return clean;
+    }
+    setDraftName(playerName);
+    return playerName;
+  };
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Typing your adventurer name: Space is just a space.
+      if (e.target instanceof HTMLInputElement) return;
       if (e.code === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         onStart();
@@ -80,14 +107,47 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ onStart, onOpenJournal
           <strong className="text-amber-400 font-bold">{PORTFOLIO_OWNER.name}’s</strong>.
         </p>
 
+        {/* Adventurer card: pick a name other players will see */}
+        <form
+          className="pointer-events-auto mb-4 flex items-center gap-2.5 pl-2 pr-3 py-2 rounded-2xl bg-amber-950/85 border border-amber-500/40 shadow-lg"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const name = commitName();
+            (document.activeElement as HTMLElement | null)?.blur();
+            onStart(name);
+          }}
+        >
+          <div
+            className="relative w-10 h-10 rounded-full border-2 border-amber-400 flex items-center justify-center text-lg shrink-0"
+            style={{ background: `radial-gradient(circle at 35% 30%, ${playerColor}, #1c120b 85%)` }}
+            aria-hidden="true"
+          >
+            🧢
+            <span className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-amber-400 border-2 border-amber-950 text-[10px] font-black text-amber-950 flex items-center justify-center">
+              {level}
+            </span>
+          </div>
+          <label className="flex flex-col text-left">
+            <span className="text-[9px] uppercase tracking-[0.2em] font-bold text-amber-400">Adventurer name</span>
+            <input
+              value={draftName}
+              maxLength={16}
+              onChange={(e) => setDraftName(e.target.value)}
+              onBlur={() => commitName()}
+              className="w-40 bg-transparent text-amber-50 font-bold text-sm outline-none border-b border-amber-500/40 focus:border-amber-300 select-text"
+              aria-label="Adventurer name"
+            />
+          </label>
+        </form>
+
         {/* Primary CTA Button */}
         <div className="flex flex-col sm:flex-row items-center gap-3">
           <button
             data-start="true"
-            onClick={onStart}
+            onClick={() => onStart(commitName())}
             className="pointer-events-auto px-8 py-3.5 rounded-2xl bg-amber-500 hover:bg-amber-400 text-amber-950 font-semibold text-base sm:text-lg tracking-wide shadow-lg hover:shadow-xl transition-all transform active:scale-95 flex items-center gap-3 border-b-4 border-amber-900"
           >
-            <span>⛵ Explore the Island</span>
+            <span>{level > 1 ? '⛵ Continue Adventure' : '⛵ Explore the Island'}</span>
             <span className="text-xs bg-amber-950/80 px-2 py-0.5 rounded font-mono text-amber-100">
               Space / Enter
             </span>
@@ -101,8 +161,14 @@ export const TitleScreen: React.FC<TitleScreenProps> = ({ onStart, onOpenJournal
           <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">WASD / Arrow Keys</span>
           <span>Move</span>
           <span className="text-amber-500">•</span>
-          <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">Space / E</span>
-          <span>Talk & Interact</span>
+          <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">E</span>
+          <span>Talk</span>
+          <span className="text-amber-500">•</span>
+          <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">Shift</span>
+          <span>Sprint</span>
+          <span className="text-amber-500">•</span>
+          <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">Enter</span>
+          <span>Chat</span>
           <span className="text-amber-500">•</span>
           <span className="bg-amber-100 px-2 py-1 rounded text-amber-950 font-mono">Tab</span>
           <span>Field Guide</span>

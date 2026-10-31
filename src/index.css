@@ -193,3 +193,22 @@ textarea,
 .cursor-glove-grab:active {
   cursor: url('./assets/cursors/fist.svg') 22 22, grabbing;
 }
+
+/* MMORPG HUD: level-up fanfare */
+.mmo-levelup {
+  animation: mmo-levelup 2.6s cubic-bezier(0.2, 0.9, 0.3, 1.2) forwards;
+}
+@keyframes mmo-levelup {
+  0% { opacity: 0; transform: scale(0.4) translateY(20px); }
+  15% { opacity: 1; transform: scale(1.12) translateY(0); }
+  25% { transform: scale(1); }
+  80% { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(1) translateY(-24px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mmo-levelup { animation-name: mmo-fade; }
+}
+@keyframes mmo-fade {
+  0%, 100% { opacity: 0; }
+  10%, 85% { opacity: 1; }
+}

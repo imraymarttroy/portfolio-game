@@ -15,6 +15,40 @@ import {
 } from '../game/world';
 import { soundManager } from '../audio/soundSynthesizer';
 import { GameState, Vector3D } from '../types/game';
+import { createNameplate, createQuestMarker, disposeSprite, updateNameplate } from './labels';
+
+/** What the local player looks like right now, for sending to other players. */
+export interface PlayerSnapshot {
+  x: number;
+  y: number;
+  z: number;
+  /** Facing angle in radians. */
+  r: number;
+  moving: boolean;
+}
+
+/** Another adventurer, as received from the multiplayer server. */
+export interface RemotePlayerState extends PlayerSnapshot {
+  name: string;
+  color: string;
+  level: number;
+}
+
+interface RemoteAvatar {
+  group: THREE.Group;
+  plate: THREE.Sprite;
+  leftLeg: THREE.Object3D;
+  rightLeg: THREE.Object3D;
+  label: string;
+  target: PlayerSnapshot;
+  walkTime: number;
+}
+
+/** Walking speed in world units per second, and the sprint multiplier. */
+export const WALK_SPEED = 7.2;
+export const SPRINT_MULTIPLIER = 1.6;
+const ENERGY_DRAIN_PER_SEC = 22;
+const ENERGY_REGEN_PER_SEC = 14;
 
 // Software WebGL Detection as specified by Three.js skill
 export const isSoftwareGl = (() => {
@@ -39,10 +73,20 @@ export interface IslandSceneCallbacks {
   onNpcProximity: (npcId: string | null) => void;
   onShellCollected: (shellId: string) => void;
   onPlayerMoved: (pos: Vector3D) => void;
+  /** Sprint energy changed (current, max). Called only when it changes. */
+  onEnergyChanged?: (energy: number, max: number) => void;
 }
 
 /** Hip height of the player avatar (legs pivot here, upper body sits here). */
 const PLAYER_HIP_Y = 0.42;
+
+/** Heights (above an NPC's feet) of its nameplate and quest marker. */
+const NPC_PLATE_Y = 2.3;
+const NPC_MARKER_Y = 3.05;
+/** Height above the player's feet of their nameplate. */
+const PLAYER_PLATE_Y = 2.2;
+/** Villager name tags are shown within this distance of the player. */
+const NAMEPLATE_RANGE = 16;
 
 /** Camera zoom limits, as multiples of the default follow distance. */
 const ZOOM_MIN = 0.4;
@@ -105,6 +149,18 @@ export class IslandSceneController {
 
   // Mobile virtual joystick input
   private joystickInput = { x: 0, y: 0 };
+
+  // MMORPG layer: nameplates, quest markers, sprint energy, other players
+  private npcMarkers: Map<string, { available: THREE.Sprite; talked: THREE.Sprite }> = new Map();
+  private npcPlates: { sprite: THREE.Sprite; x: number; z: number }[] = [];
+  private playerPlate: THREE.Sprite | null = null;
+  private playerPlateLabel = '';
+  private energy = 100;
+  private maxEnergy = 100;
+  private lastReportedEnergy = -1;
+  private sprintToggle = false;
+  private isMoving = false;
+  private remotePlayers: Map<string, RemoteAvatar> = new Map();
 
   constructor(container: HTMLElement, callbacks: IslandSceneCallbacks) {
     this.container = container;
@@ -785,20 +841,21 @@ export class IslandSceneController {
         group.add(satchel);
       }
 
-      // 6. Floating Chat Bubble Indicator
+      // 6. MMORPG nameplate + quest marker ("!" until you've talked, then a chat bubble)
+      const plate = createNameplate({ name: npc.name, subtitle: npc.title, color: '#fef3c7' });
+      plate.position.set(0, NPC_PLATE_Y, 0);
+      group.add(plate);
+      this.npcPlates.push({ sprite: plate, x, z });
+
       const emoteGroup = new THREE.Group();
-      emoteGroup.position.set(0, 2.3, 0);
-
-      const bubbleGeo = new THREE.SphereGeometry(0.32, 8, 8);
-      const bubbleMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
-      const bubble = new THREE.Mesh(bubbleGeo, bubbleMat);
-      emoteGroup.add(bubble);
-
-      const tailGeo = new THREE.ConeGeometry(0.15, 0.28, 4);
-      tailGeo.rotateX(Math.PI);
-      const tail = new THREE.Mesh(tailGeo, bubbleMat);
-      tail.position.y = -0.25;
-      emoteGroup.add(tail);
+      emoteGroup.position.set(0, NPC_MARKER_Y, 0);
+      const available = createQuestMarker('available');
+      available.scale.set(1.1, 1.1, 1);
+      const talked = createQuestMarker('talked');
+      talked.scale.set(0.65, 0.65, 1);
+      talked.visible = false;
+      emoteGroup.add(available, talked);
+      this.npcMarkers.set(npc.id, { available, talked });
 
       group.add(emoteGroup);
       this.npcEmoteMeshes.set(npc.id, emoteGroup);
@@ -1320,7 +1377,193 @@ export class IslandSceneController {
     this.playerGroup.position.set(this.playerPos.x, this.playerPos.y, this.playerPos.z);
   }
 
+  // ---------------------------------------------------------------------------
+  // MMORPG layer
+  // ---------------------------------------------------------------------------
+
+  /** Shows "!" over villagers you haven't met yet, a chat bubble over the rest. */
+  public setNpcVisited(visited: Set<string>) {
+    this.npcMarkers.forEach((m, id) => {
+      const met = visited.has(id);
+      m.available.visible = !met;
+      m.talked.visible = met;
+    });
+  }
+
+  /** Floating name and level over the local player's head. */
+  public setPlayerNameplate(name: string, level: number) {
+    const label = `${name}|${level}`;
+    if (label === this.playerPlateLabel) return;
+    this.playerPlateLabel = label;
+    const opts = { name, level, color: '#a7f3d0' };
+    if (!this.playerPlate) {
+      this.playerPlate = createNameplate(opts);
+      this.playerPlate.position.set(0, PLAYER_PLATE_Y, 0);
+      this.playerGroup.add(this.playerPlate);
+    } else {
+      updateNameplate(this.playerPlate, opts);
+    }
+  }
+
+  public setMaxEnergy(max: number) {
+    const ratio = this.maxEnergy > 0 ? this.energy / this.maxEnergy : 1;
+    this.maxEnergy = max;
+    this.energy = max * ratio;
+    this.lastReportedEnergy = -1;
+  }
+
+  /** Mobile sprint button toggles sprint on/off instead of holding Shift. */
+  public setSprintToggle(on: boolean) {
+    this.sprintToggle = on;
+  }
+
+  public getPlayerSnapshot(): PlayerSnapshot {
+    return {
+      x: this.playerPos.x,
+      y: this.playerPos.y,
+      z: this.playerPos.z,
+      r: this.playerFacingAngle,
+      moving: this.isMoving,
+    };
+  }
+
+  public upsertRemotePlayer(id: string, state: RemotePlayerState) {
+    let avatar = this.remotePlayers.get(id);
+    if (!avatar) {
+      avatar = this.buildRemoteAvatar(state);
+      this.remotePlayers.set(id, avatar);
+      this.scene.add(avatar.group);
+    }
+    const label = `${state.name}|${state.level}`;
+    if (label !== avatar.label) {
+      avatar.label = label;
+      updateNameplate(avatar.plate, { name: state.name, level: state.level, color: '#bfdbfe' });
+    }
+    avatar.target = { x: state.x, y: state.y, z: state.z, r: state.r, moving: state.moving };
+  }
+
+  public removeRemotePlayer(id: string) {
+    const avatar = this.remotePlayers.get(id);
+    if (!avatar) return;
+    this.scene.remove(avatar.group);
+    this.disposeObject(avatar.group);
+    this.remotePlayers.delete(id);
+  }
+
+  public clearRemotePlayers() {
+    [...this.remotePlayers.keys()].forEach((id) => this.removeRemotePlayer(id));
+  }
+
+  /** A simple, friendly adventurer figure tinted in the player's colour. */
+  private buildRemoteAvatar(state: RemotePlayerState): RemoteAvatar {
+    const group = new THREE.Group();
+    group.position.set(state.x, state.y, state.z);
+    group.rotation.y = state.r;
+
+    const tint = new THREE.Color(state.color);
+    const outfit = new THREE.MeshStandardMaterial({ color: tint, roughness: 0.6 });
+    const trim = new THREE.MeshStandardMaterial({ color: tint.clone().multiplyScalar(0.55), roughness: 0.7 });
+    const skin = new THREE.MeshStandardMaterial({ color: 0xe0ac82, roughness: 0.55 });
+    const dark = new THREE.MeshBasicMaterial({ color: 0x1e293b });
+
+    const shadow = new THREE.Mesh(
+      new THREE.CircleGeometry(0.45, 12).rotateX(-Math.PI / 2),
+      new THREE.MeshBasicMaterial({ color: 0x0f172a, transparent: true, opacity: 0.3, depthWrite: false })
+    );
+    shadow.position.y = 0.02;
+    group.add(shadow);
+
+    const leg = (side: number) => {
+      const pivot = new THREE.Group();
+      pivot.position.set(0.14 * side, 0.42, 0);
+      const m = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.1, 0.4, 8), trim);
+      m.position.y = -0.2;
+      pivot.add(m);
+      group.add(pivot);
+      return pivot;
+    };
+    const leftLeg = leg(1);
+    const rightLeg = leg(-1);
+
+    const body = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.36, 0.7, 10), outfit);
+    body.position.y = 0.78;
+    body.castShadow = !isSoftwareGl;
+    group.add(body);
+
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 12, 10), skin);
+    head.position.y = 1.4;
+    head.castShadow = !isSoftwareGl;
+    group.add(head);
+
+    const hat = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.4, 10), trim);
+    hat.position.y = 1.78;
+    group.add(hat);
+
+    [-1, 1].forEach((side) => {
+      const eye = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 6), dark);
+      eye.position.set(0.11 * side, 1.43, 0.3);
+      group.add(eye);
+    });
+
+    const plate = createNameplate({ name: state.name, level: state.level, color: '#bfdbfe' });
+    plate.position.set(0, 2.15, 0);
+    group.add(plate);
+
+    return {
+      group,
+      plate,
+      leftLeg,
+      rightLeg,
+      label: `${state.name}|${state.level}`,
+      target: { x: state.x, y: state.y, z: state.z, r: state.r, moving: state.moving },
+      walkTime: 0,
+    };
+  }
+
+  private updateRemotePlayers(dt: number) {
+    this.remotePlayers.forEach((a) => {
+      const g = a.group;
+      const k = 1 - Math.exp(-10 * dt);
+      // Snap if they teleported (e.g. reset position) instead of sliding across the map.
+      if (Math.hypot(a.target.x - g.position.x, a.target.z - g.position.z) > 12) {
+        g.position.set(a.target.x, a.target.y, a.target.z);
+      } else {
+        g.position.x += (a.target.x - g.position.x) * k;
+        g.position.y += (a.target.y - g.position.y) * k;
+        g.position.z += (a.target.z - g.position.z) * k;
+      }
+      let dr = a.target.r - g.rotation.y;
+      dr = Math.atan2(Math.sin(dr), Math.cos(dr));
+      g.rotation.y += dr * k;
+      a.plate.visible =
+        distance2D(g.position.x, g.position.z, this.playerPos.x, this.playerPos.z) < NAMEPLATE_RANGE * 1.5;
+
+      if (a.target.moving) {
+        a.walkTime += dt * 14;
+        a.leftLeg.rotation.x = Math.sin(a.walkTime) * 0.7;
+        a.rightLeg.rotation.x = -Math.sin(a.walkTime) * 0.7;
+      } else {
+        a.leftLeg.rotation.x *= 0.8;
+        a.rightLeg.rotation.x *= 0.8;
+      }
+    });
+  }
+
+  private disposeObject(root: THREE.Object3D) {
+    root.traverse((o) => {
+      if (o instanceof THREE.Sprite) {
+        disposeSprite(o);
+      } else if (o instanceof THREE.Mesh) {
+        o.geometry.dispose();
+        const mats = Array.isArray(o.material) ? o.material : [o.material];
+        mats.forEach((m) => m.dispose());
+      }
+    });
+  }
+
   private onKeyDown = (e: KeyboardEvent) => {
+    // Typing in the chat box must not move the player.
+    if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
     this.heldKeys.add(e.code);
 
     if (this.gameState === 'playing') {
@@ -1476,11 +1719,18 @@ export class IslandSceneController {
       }
     });
 
-    // Emote bubbles bobbing gently
+    // Quest markers bobbing gently
     this.npcEmoteMeshes.forEach((mesh) => {
-      mesh.position.y = 2.3 + Math.sin(time * 3.5) * 0.1;
-      mesh.rotation.y = time * 0.8;
+      mesh.position.y = NPC_MARKER_Y + Math.sin(time * 3.5) * 0.1;
     });
+
+    // Name tags stay the same size on screen, so hide the far-away ones.
+    this.npcPlates.forEach((p) => {
+      p.sprite.visible = distance2D(p.x, p.z, this.playerPos.x, this.playerPos.z) < NAMEPLATE_RANGE;
+    });
+
+    // Other adventurers glide toward their latest network position
+    this.updateRemotePlayers(dt);
 
     // 2. Title screen cinematic orbital camera
     if (this.gameState === 'title') {
@@ -1513,7 +1763,24 @@ export class IslandSceneController {
     }
 
     const inputLen = Math.sqrt(moveX * moveX + moveZ * moveZ);
-    const speed = 7.2;
+    this.isMoving = inputLen > 0.05;
+
+    // Sprint (hold Shift, or the mobile toggle) spends energy; resting refills it.
+    const wantsSprint =
+      this.sprintToggle || this.heldKeys.has('ShiftLeft') || this.heldKeys.has('ShiftRight');
+    const sprinting = this.isMoving && wantsSprint && this.energy > 0;
+    if (sprinting) {
+      this.energy = Math.max(0, this.energy - ENERGY_DRAIN_PER_SEC * dt);
+    } else {
+      const regen = this.isMoving ? ENERGY_REGEN_PER_SEC * 0.5 : ENERGY_REGEN_PER_SEC;
+      this.energy = Math.min(this.maxEnergy, this.energy + regen * dt);
+    }
+    if (Math.abs(this.energy - this.lastReportedEnergy) >= 0.5 ||
+        (this.energy === this.maxEnergy && this.lastReportedEnergy !== this.maxEnergy)) {
+      this.lastReportedEnergy = this.energy;
+      this.callbacks.onEnergyChanged?.(this.energy, this.maxEnergy);
+    }
+    const speed = WALK_SPEED * (sprinting ? SPRINT_MULTIPLIER : 1);
 
     if (inputLen > 0.05) {
       const normX = (moveX / Math.max(1, inputLen));
@@ -1526,7 +1793,7 @@ export class IslandSceneController {
       this.playerFacingAngle = Math.atan2(normX, normZ);
 
       // Running walk cycle
-      this.walkTime += dt * 14;
+      this.walkTime += dt * (sprinting ? 19 : 14);
       this.playerLeftLeg.rotation.x = Math.sin(this.walkTime) * 0.7;
       this.playerRightLeg.rotation.x = -Math.sin(this.walkTime) * 0.7;
       this.playerLeftArm.rotation.x = -Math.sin(this.walkTime) * 0.6;
@@ -1535,7 +1802,7 @@ export class IslandSceneController {
 
       // Footstep sound & dust puff
       this.stepSoundTimer += dt;
-      if (this.stepSoundTimer > 0.28 && !this.isJumping) {
+      if (this.stepSoundTimer > (sprinting ? 0.2 : 0.28) && !this.isJumping) {
         this.stepSoundTimer = 0;
         soundManager.playFootstep();
         this.emitStepParticle(this.playerPos.x, this.playerPos.y, this.playerPos.z);
@@ -1679,6 +1946,13 @@ export class IslandSceneController {
     canvas.removeEventListener('pointercancel', this.onPointerUp);
 
     soundManager.stopAmbient();
+    this.clearRemotePlayers();
+    this.npcPlates.forEach((p) => disposeSprite(p.sprite));
+    this.npcMarkers.forEach((m) => {
+      disposeSprite(m.available);
+      disposeSprite(m.talked);
+    });
+    if (this.playerPlate) disposeSprite(this.playerPlate);
     this.renderer.dispose();
     if (this.container && this.renderer.domElement) {
       this.container.removeChild(this.renderer.domElement);
