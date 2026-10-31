@@ -64,8 +64,12 @@ export const Minimap: React.FC<MinimapProps> = ({
     if (!ctx) return;
 
     let frame = 0;
-    const draw = () => {
+    let lastDraw = 0;
+    const draw = (now = 0) => {
       frame = requestAnimationFrame(draw);
+      // ~15 fps is plenty for a minimap and saves battery on phones.
+      if (now - lastDraw < 66) return;
+      lastDraw = now;
       const { getPlayer, getOthers, visitedNpcs, collectedShells } = propsRef.current;
       const me = getPlayer();
       const half = size / 2;
