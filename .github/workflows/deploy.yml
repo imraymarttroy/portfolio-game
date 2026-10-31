@@ -25,6 +25,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Optional: set a repository variable MULTIPLAYER_URL (e.g. wss://your-server.onrender.com)
+          # to turn on live multiplayer. Left empty, the game runs as a solo adventure.
+          VITE_MULTIPLAYER_URL: ${{ vars.MULTIPLAYER_URL }}
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist

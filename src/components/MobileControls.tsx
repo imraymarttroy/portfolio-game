@@ -5,6 +5,8 @@ interface MobileControlsProps {
   onJump: () => void;
   onInteract: () => void;
   isNearNpc: boolean;
+  sprintOn?: boolean;
+  onToggleSprint?: () => void;
 }
 
 export const MobileControls: React.FC<MobileControlsProps> = ({
@@ -12,6 +14,8 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
   onJump,
   onInteract,
   isNearNpc,
+  sprintOn = false,
+  onToggleSprint,
 }) => {
   const [knobPos, setKnobPos] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -81,6 +85,24 @@ export const MobileControls: React.FC<MobileControlsProps> = ({
             className="w-16 h-16 rounded-full bg-amber-900 active:bg-amber-800 text-amber-100 font-bold text-xs shadow-xl flex items-center justify-center border-2 border-amber-500"
           >
             💬 Talk
+          </button>
+        )}
+
+        {onToggleSprint && (
+          <button
+            onTouchStart={(e) => {
+              e.preventDefault();
+              onToggleSprint();
+            }}
+            onClick={onToggleSprint}
+            aria-pressed={sprintOn}
+            className={`w-12 h-12 rounded-full font-bold text-[10px] shadow-xl flex items-center justify-center border-2 ${
+              sprintOn
+                ? 'bg-teal-400 text-teal-950 border-teal-200'
+                : 'bg-amber-950/70 text-amber-100 border-amber-600/60'
+            }`}
+          >
+            👟 Run
           </button>
         )}
 

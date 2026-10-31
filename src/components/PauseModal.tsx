@@ -1,5 +1,5 @@
-import React from 'react';
-import { Play, RotateCcw, Home, BookOpen, Volume2, VolumeX } from 'lucide-react';
+import React, { useState } from 'react';
+import { Play, RotateCcw, Home, BookOpen, Volume2, VolumeX, Trash2 } from 'lucide-react';
 import { calculatePortfolioProgress, getCompletionTitle } from '../game/logic';
 import { ISLAND_NPCS, ISLAND_SHELLS } from '../data/portfolioData';
 
@@ -12,6 +12,7 @@ interface PauseModalProps {
   onToggleMute: () => void;
   onResetPosition: () => void;
   onReturnTitle: () => void;
+  onResetProgress?: () => void;
 }
 
 export const PauseModal: React.FC<PauseModalProps> = ({
@@ -23,7 +24,9 @@ export const PauseModal: React.FC<PauseModalProps> = ({
   onToggleMute,
   onResetPosition,
   onReturnTitle,
+  onResetProgress,
 }) => {
+  const [confirmReset, setConfirmReset] = useState(false);
   const progress = calculatePortfolioProgress(
     visitedNpcs.size,
     collectedShells.size,
@@ -108,6 +111,18 @@ export const PauseModal: React.FC<PauseModalProps> = ({
             <Home className="w-3.5 h-3.5" />
             <span>Return to Title Screen</span>
           </button>
+
+          {onResetProgress && (
+            <button
+              onClick={() => (confirmReset ? onResetProgress() : setConfirmReset(true))}
+              className={`w-full py-2 rounded-xl font-semibold text-xs transition-all flex items-center justify-center gap-1.5 ${
+                confirmReset ? 'bg-red-600 hover:bg-red-500 text-white' : 'text-red-700/70 hover:text-red-700'
+              }`}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span>{confirmReset ? 'Tap again to erase your level and quests' : 'Start a New Adventure'}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
