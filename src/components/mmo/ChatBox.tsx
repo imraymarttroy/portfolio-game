@@ -64,18 +64,18 @@ export const ChatBox: React.FC<ChatBoxProps> = ({ lines, compact, active, online
     if (compact) setOpen(false);
   };
 
-  const visible = compact && !open ? lines.slice(-3) : lines.slice(-60);
+  const visible = compact && !open ? lines.slice(-2) : lines.slice(-60);
 
   return (
     <div
       className={`pointer-events-auto flex flex-col rounded-xl overflow-hidden ${PANEL} ${
-        compact ? 'w-[min(78vw,300px)]' : 'w-[340px]'
+        compact ? 'w-[min(72vw,280px)]' : 'w-[300px] lg:w-[340px]'
       }`}
     >
       <div
         ref={logRef}
         className={`px-2.5 pt-2 pb-1 overflow-y-auto overscroll-contain text-[11px] sm:text-xs leading-snug flex flex-col gap-0.5 ${
-          compact && !open ? 'max-h-[3.9rem]' : 'h-36 sm:h-40'
+          compact && !open ? '' : 'h-36 sm:h-40'
         }`}
         aria-live="polite"
       >

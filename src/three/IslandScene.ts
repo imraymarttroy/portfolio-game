@@ -85,6 +85,8 @@ const NPC_PLATE_Y = 2.3;
 const NPC_MARKER_Y = 3.05;
 /** Height above the player's feet of their nameplate. */
 const PLAYER_PLATE_Y = 2.2;
+/** Villager name tags are shown within this distance of the player. */
+const NAMEPLATE_RANGE = 16;
 
 /** Camera zoom limits, as multiples of the default follow distance. */
 const ZOOM_MIN = 0.4;
@@ -150,7 +152,7 @@ export class IslandSceneController {
 
   // MMORPG layer: nameplates, quest markers, sprint energy, other players
   private npcMarkers: Map<string, { available: THREE.Sprite; talked: THREE.Sprite }> = new Map();
-  private npcPlates: THREE.Sprite[] = [];
+  private npcPlates: { sprite: THREE.Sprite; x: number; z: number }[] = [];
   private playerPlate: THREE.Sprite | null = null;
   private playerPlateLabel = '';
   private energy = 100;
@@ -843,13 +845,14 @@ export class IslandSceneController {
       const plate = createNameplate({ name: npc.name, subtitle: npc.title, color: '#fef3c7' });
       plate.position.set(0, NPC_PLATE_Y, 0);
       group.add(plate);
-      this.npcPlates.push(plate);
+      this.npcPlates.push({ sprite: plate, x, z });
 
       const emoteGroup = new THREE.Group();
       emoteGroup.position.set(0, NPC_MARKER_Y, 0);
       const available = createQuestMarker('available');
+      available.scale.set(1.1, 1.1, 1);
       const talked = createQuestMarker('talked');
-      talked.scale.set(0.6, 0.6, 1);
+      talked.scale.set(0.65, 0.65, 1);
       talked.visible = false;
       emoteGroup.add(available, talked);
       this.npcMarkers.set(npc.id, { available, talked });
@@ -1532,6 +1535,8 @@ export class IslandSceneController {
       let dr = a.target.r - g.rotation.y;
       dr = Math.atan2(Math.sin(dr), Math.cos(dr));
       g.rotation.y += dr * k;
+      a.plate.visible =
+        distance2D(g.position.x, g.position.z, this.playerPos.x, this.playerPos.z) < NAMEPLATE_RANGE * 1.5;
 
       if (a.target.moving) {
         a.walkTime += dt * 14;
@@ -1717,6 +1722,11 @@ export class IslandSceneController {
     // Quest markers bobbing gently
     this.npcEmoteMeshes.forEach((mesh) => {
       mesh.position.y = NPC_MARKER_Y + Math.sin(time * 3.5) * 0.1;
+    });
+
+    // Name tags stay the same size on screen, so hide the far-away ones.
+    this.npcPlates.forEach((p) => {
+      p.sprite.visible = distance2D(p.x, p.z, this.playerPos.x, this.playerPos.z) < NAMEPLATE_RANGE;
     });
 
     // Other adventurers glide toward their latest network position
@@ -1937,7 +1947,7 @@ export class IslandSceneController {
 
     soundManager.stopAmbient();
     this.clearRemotePlayers();
-    this.npcPlates.forEach(disposeSprite);
+    this.npcPlates.forEach((p) => disposeSprite(p.sprite));
     this.npcMarkers.forEach((m) => {
       disposeSprite(m.available);
       disposeSprite(m.talked);

@@ -17,7 +17,7 @@ export const QuestTracker: React.FC<QuestTrackerProps> = ({ quests, compact, onO
   return (
     <button
       onClick={onOpenLog}
-      className={`pointer-events-auto text-left rounded-xl px-3 py-2 w-[170px] sm:w-[230px] transition-colors hover:border-amber-400/70 ${PANEL}`}
+      className={`pointer-events-auto text-left rounded-xl px-3 py-2 w-[150px] sm:w-[230px] transition-colors hover:border-amber-400/70 ${PANEL}`}
       title="Open quest log [L]"
     >
       <div className="flex items-center justify-between mb-1">

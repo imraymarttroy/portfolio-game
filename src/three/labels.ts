@@ -16,12 +16,21 @@ export interface NameplateOptions {
   level?: number;
 }
 
-/** Height in world units of one nameplate sprite. */
-const PLATE_WORLD_HEIGHT = 0.62;
+/**
+ * Nameplates keep a constant on-screen size (like MMO name tags) instead of
+ * shrinking with distance. This converts canvas pixels to sprite scale; with
+ * the game's 48° camera it works out to roughly 1 screen px per 4 canvas px.
+ */
+const PLATE_SCALE_PER_PX = 0.00024;
 
 export function createNameplate(opts: NameplateOptions): THREE.Sprite {
   const sprite = new THREE.Sprite(
-    new THREE.SpriteMaterial({ transparent: true, depthWrite: false, depthTest: true })
+    new THREE.SpriteMaterial({
+      transparent: true,
+      depthWrite: false,
+      depthTest: true,
+      sizeAttenuation: false,
+    })
   );
   sprite.renderOrder = 10;
   updateNameplate(sprite, opts);
@@ -94,8 +103,7 @@ export function updateNameplate(sprite: THREE.Sprite, opts: NameplateOptions): v
   mat.map = tex;
   mat.needsUpdate = true;
 
-  const worldH = PLATE_WORLD_HEIGHT * (height / (nameSize + subSize + gap + pad * 1.2));
-  sprite.scale.set((worldH * width) / height, worldH, 1);
+  sprite.scale.set(width * PLATE_SCALE_PER_PX, height * PLATE_SCALE_PER_PX, 1);
   // Anchor at the bottom so the plate grows upwards from its position.
   sprite.center.set(0.5, 0);
 }

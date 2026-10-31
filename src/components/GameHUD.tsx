@@ -73,6 +73,20 @@ export const GameHUD: React.FC<GameHUDProps> = (props) => {
   const compact = useIsCompact();
   const nearbyNpc = nearbyNpcId ? ISLAND_NPCS.find((n) => n.id === nearbyNpcId) : null;
 
+  const systemButtons = (
+    <>
+      <button onClick={props.onOpenJournal} className={iconButton} title="Portfolio guide [Tab]" aria-label="Open portfolio guide">
+        <BookOpen className="w-4 h-4 text-amber-300" />
+      </button>
+      <button onClick={props.onToggleMute} className={iconButton} title="Toggle audio [M]" aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}>
+        {isMuted ? <VolumeX className="w-4 h-4 text-red-300" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
+      </button>
+      <button onClick={props.onPause} className={iconButton} title="Menu [Esc]" aria-label="Pause game">
+        <Pause className="w-4 h-4 text-amber-200" />
+      </button>
+    </>
+  );
+
   const slots: HotbarSlot[] = [
     {
       id: 'talk',
@@ -122,21 +136,13 @@ export const GameHUD: React.FC<GameHUDProps> = (props) => {
             maxEnergy={props.maxEnergy}
             title={props.playerTitle}
           />
+          {compact && <div className="flex gap-1.5">{systemButtons}</div>}
         </div>
 
-        {/* Top-right: system buttons + minimap + quest tracker */}
+        {/* Top-right: system buttons + minimap + quest tracker
+            (on phones the buttons move under the unit frame) */}
         <div className="absolute top-3 right-3 sm:top-5 sm:right-5 flex items-start gap-2">
-          <div className="flex flex-col gap-1.5 mt-6">
-            <button onClick={props.onOpenJournal} className={iconButton} title="Portfolio guide [Tab]" aria-label="Open portfolio guide">
-              <BookOpen className="w-4 h-4 text-amber-300" />
-            </button>
-            <button onClick={props.onToggleMute} className={iconButton} title="Toggle audio [M]" aria-label={isMuted ? 'Unmute audio' : 'Mute audio'}>
-              {isMuted ? <VolumeX className="w-4 h-4 text-red-300" /> : <Volume2 className="w-4 h-4 text-emerald-300" />}
-            </button>
-            <button onClick={props.onPause} className={iconButton} title="Menu [Esc]" aria-label="Pause game">
-              <Pause className="w-4 h-4 text-amber-200" />
-            </button>
-          </div>
+          {!compact && <div className="flex flex-col gap-1.5 mt-6">{systemButtons}</div>}
           <div className="flex flex-col items-end gap-2">
             <Minimap
               size={compact ? 104 : 168}
@@ -207,7 +213,7 @@ export const GameHUD: React.FC<GameHUDProps> = (props) => {
         )}
 
         {/* First-time controls hint */}
-        {!compact && levelInfo.level === 1 && levelInfo.current === 0 && (
+        {!compact && levelInfo.level === 1 && (
           <div className={`absolute left-1/2 -translate-x-1/2 top-4 px-3 py-1.5 rounded-xl text-[11px] text-amber-100 flex items-center gap-1.5 ${PANEL}`}>
             <KeyCap>WASD</KeyCap> move · <KeyCap>Shift</KeyCap> sprint · <KeyCap>E</KeyCap> talk · <KeyCap>Enter</KeyCap> chat
           </div>
